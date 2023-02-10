@@ -18,7 +18,7 @@ end
 _weights(towns) = [ town.density for town in towns ]
 random_town(towns) = sample(towns, Weights(_weights(towns)))
 has_empty_house(town) = length([house for house in town.houses if isempty(house) ]) > 0
-function add_newhouse!(town,location)
+function add_empty_house!(town,location)
     house = House(town,location)
     return house
 end

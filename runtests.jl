@@ -32,7 +32,7 @@ include("src/models.jl")
         model = ABM(Person,space;properties=DemographyPars(initialPop=100))
         @test length(positions(model)) == 0
 
-        houses = create_empty_houses!(space,nhouses)
+        houses = add_empty_houses!(space,nhouses)
 
         @test length(houses) == 100
         @test length(allhouses(model.space.towns)) == 100

@@ -8,6 +8,7 @@ functions with argument model are expected to be found here.
 
 using Agents
 using Parameters
+using TypedDelegation
 
 import Agents: random_position, add_agent_to_space!, remove_agent_from_space!,
     positions, ids_in_position, has_empty_positions, random_empty,
@@ -36,8 +37,8 @@ empty_positions(model) = allhouses(model.space.towns,EmtpyHouses())
 random_town(model::ABM{CountryMap}) = random_town(model.space.towns)
 random_house(model) = rand(positions(model))
 random_empty_house(model) = rand(empty_positions(model))
-add_newhouse!(model) = add_newhouse!(model.space)
-create_empty_houses!(model,nhouses) = create_empty_houses!(model.space,nhouses)
+add_empty_house!(model) = add_empty_house!(model.space)
+add_empty_houses!(model,nhouses) = add_empty_houses!(model.space,nhouses)
 
 
 ##############################
