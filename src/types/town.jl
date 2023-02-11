@@ -1,4 +1,5 @@
 using StatsBase
+import Agents: positions
 
 """
  Potentially possible: to maintain the following
@@ -17,18 +18,10 @@ end
 
 _weights(towns) = [ town.density for town in towns ]
 random_town(towns) = sample(towns, Weights(_weights(towns)))
-has_empty_house(town) = length([house for house in town.houses if isempty(house) ]) > 0
+
 function add_empty_house!(town,location)
     house = House(town,location)
     return house
-end
-function has_empty_house(towns::Vector)
-    for town in towns
-        if has_empty_house(town)
-            return true
-        end
-    end
-    return false
 end
 
 function Base.show(io::IO, town::TownH)
@@ -38,13 +31,13 @@ end
 
 abstract type GetHouses end
 struct AllHouses <: GetHouses end
-struct EmtpyHouses <: GetHouses end
+struct EmptyHouses <: GetHouses end
 
-allhouses(town::TownH,::EmtpyHouses) = [ house for house in town.houses if isempty(house) ]
-emptyhouses(town::TownH) = allhouses(town,EmtpyHouses())
+const Towns = Union{TownH,Vector} # One town or list of towns
+
+allhouses(town::TownH,::EmptyHouses) = [ house for house in town.houses if isempty(house) ]
 allhouses(town::TownH,::AllHouses) = town.houses
 allhouses(town::TownH) = allhouses(town,AllHouses())
-
 function allhouses(towns::Vector,ret::GetHouses)
     houses = House[]
     for town in towns
@@ -52,5 +45,31 @@ function allhouses(towns::Vector,ret::GetHouses)
     end
     return houses
 end
-emptyhouses(towns::Vector) = allhouses(towns,EmtpyHouses())
 allhouses(towns::Vector) = allhouses(towns,AllHouses())
+
+empty_houses(towns::Towns) = allhouses(towns,EmptyHouses())
+
+has_empty_house(town::TownH) = length(empty_houses(town)) > 0
+function has_empty_house(towns::Vector)
+    for town in towns
+        if has_empty_house(town)
+            return true
+        end
+    end
+    return false
+end
+
+
+##############################
+# Agents.jl API-like functions
+##############################
+
+positions(towns::Towns, ret::GetHouses = AllHouses()) = allhouses(towns,ret)
+
+##############################
+# Further stuffs
+##############################
+
+empty_positions(towns::Towns) = positions(towns,EmptyHouses())
+random_house(towns::Towns) = rand(positions(towns))
+random_empty_house(towns::Towns) = rand(empty_positions(towns))

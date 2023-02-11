@@ -11,7 +11,10 @@ end
 
 DemographicMap(name,mtgd) = DemographicMap(name,mtgd,Town[])
 
-@delegate_onefield(DemographicMap, towns, [random_town])
+@delegate_onefield(DemographicMap, towns,
+    [empty_positions, positions, empty_houses, allhouses,
+        random_town, random_house, random_empty_house,
+        empty_positions, positions ])
 
 # could be useful to forward delegate functions with arguments of space.towns
 
@@ -20,6 +23,7 @@ function add_empty_house!(space::DemographicMap)
     location = (rand(1:space.maxTownGridDim),rand(1:space.maxTownGridDim))
     return add_empty_house!(town,location)
 end
+
 function add_empty_houses!(space::DemographicMap,nhouses)
     houses = House[]
     for _ in 1:nhouses

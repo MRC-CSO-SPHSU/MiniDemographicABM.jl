@@ -11,7 +11,7 @@ using Parameters
 using TypedDelegation
 
 import Agents: random_position, add_agent_to_space!, remove_agent_from_space!,
-    positions, ids_in_position, has_empty_positions, random_empty,
+    ids_in_position, has_empty_positions, random_empty,
     add_agent!, move_agent!
 
 include("util.jl")
@@ -37,15 +37,11 @@ UKDemographicABM(parameters) =
 # forward delegations could be useful from model.space
 =#
 
-@delegate_onefield(DemographicABM, space, [random_town])
-
-empty_positions(model) = allhouses(model.space.towns,EmtpyHouses())
-#random_town(model::DemographicABM) = random_town(model.space.towns)
-random_house(model) = rand(positions(model))
-random_empty_house(model) = rand(empty_positions(model))
-add_empty_house!(model) = add_empty_house!(model.space)
-add_empty_houses!(model,nhouses) = add_empty_houses!(model.space,nhouses)
-
+@delegate_onefield(DemographicABM, space,
+    [random_town, positions, empty_positions,
+        empty_houses, allhouses,
+        random_house, random_empty_house,
+        add_empty_house!, add_empty_houses!])
 
 ##############################
 # extended Agents.jl functions

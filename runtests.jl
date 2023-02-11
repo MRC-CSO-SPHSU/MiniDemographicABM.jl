@@ -58,15 +58,24 @@ include("src/models.jl")
         @test random_agent(model).id in [3,4,5]
         @test sum(allids(model)) == 12
 
-        @test length(positions(model)) == 100
         @test has_empty_positions(model)
         @test !undefined(random_position(model))
     end # Exploring Agents.jl
 
 
-    @testset verbose=true "exploring foo[!](model,*)" begin
+    @testset verbose=true "exploring some foo[!](model,*)" begin
 
         @test !undefined(random_town(model))
+        @test length(empty_positions(model)) > 0
+        @test !undefined(random_house(model))
+        @test isempty(random_empty_house(model))
+
+        nemptyhouses = length(empty_positions(model))
+        add_empty_house!(model)
+        @test length(empty_houses(model)) == nemptyhouses + 1
+
+        add_empty_houses!(model,10)
+        @test length(empty_houses(model)) == nemptyhouses + 1 + 10
 
     end
 
