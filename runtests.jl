@@ -15,30 +15,22 @@ include("src/models.jl")
 
 @testset "MiniDemographicABM Testing" begin
 
-    @testset verbose=true "exploring Agents.jl functionalities" begin
-
-        towns = [ Town("A", 0.9, (1,1), House[]),
+    towns = [ Town("A", 0.9, (1,1), House[]),
                     Town("B", 0.3, (10,5), House[]),
                     Town("C", 0.5, (4,6), House[]),
                     Town("D", 0.7, (2,2), House[]) ]
 
-        maxTownGridDim = 10
-        space = CountryMap("WaqWaq",maxTownGridDim,towns)
+    maxTownGridDim = 10
+    space = DemographicMap("WaqWaq",maxTownGridDim,towns)
 
-        @test length(space.towns) > 0
+    model = DemographicABM(space,DemographyPars(initialPop=100))
+    seed!(model,floor(Int,time()))
+    nhouses = 100
+    houses = add_empty_houses!(space,nhouses)
 
-        nhouses = 100
-
-        model = ABM(Person,space;properties=DemographyPars(initialPop=100))
-        @test length(positions(model)) == 0
-
-        houses = add_empty_houses!(space,nhouses)
-
-        @test length(houses) == 100
-        @test length(allhouses(model.space.towns)) == 100
+    @testset verbose=true "exploring Agents.jl functionalities" begin
+        @test typeof(model) <: ABM
         @test length(positions(model)) == 100
-
-        seed!(model,floor(Int,time()))
         @test model.initialPop == 100
 
         person1 = add_agent_pos!(Person(1,houses[1]),model)
@@ -70,5 +62,12 @@ include("src/models.jl")
         @test has_empty_positions(model)
         @test !undefined(random_position(model))
     end # Exploring Agents.jl
+
+
+    @testset verbose=true "exploring foo[!](model,*)" begin
+
+        @test !undefined(random_town(model))
+
+    end
 
 end #

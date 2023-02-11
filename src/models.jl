@@ -18,14 +18,18 @@ include("util.jl")
 include("basictypes.jl")
 include("spaces.jl")
 
-###############
+#######################################
 #  other model-based functions & types
-################
+#######################################
 
 @with_kw mutable struct DemographyPars
-    initialPop::Int = 10000
+    initialPop::Int = 100
     startProbMarried::Float64 = 0.8
 end
+
+const DemographicABM = ABM{DemographicMap}
+DemographicABM(space::DemographicMap, parameters::DemographyPars) =
+    ABM(Person, space; properties = parameters)
 
 #=
 UKDemographicABM(parameters) =
@@ -33,8 +37,10 @@ UKDemographicABM(parameters) =
 # forward delegations could be useful from model.space
 =#
 
+@delegate_onefield(DemographicABM, space, [random_town])
+
 empty_positions(model) = allhouses(model.space.towns,EmtpyHouses())
-random_town(model::ABM{CountryMap}) = random_town(model.space.towns)
+#random_town(model::DemographicABM) = random_town(model.space.towns)
 random_house(model) = rand(positions(model))
 random_empty_house(model) = rand(empty_positions(model))
 add_empty_house!(model) = add_empty_house!(model.space)
@@ -48,7 +54,7 @@ add_empty_houses!(model,nhouses) = add_empty_houses!(model.space,nhouses)
 #
 # The following is needed by add_agent!(agent,model)
 #
-function add_agent_to_space!(person, model::ABM{CountryMap})
+function add_agent_to_space!(person, model::DemographicABM)
     @assert !ishomeless(person)
     @assert hometown(person) in model.space.towns
     @assert home(person) in hometown(person).houses
@@ -59,45 +65,45 @@ function add_agent_to_space!(person, model::ABM{CountryMap})
 end
 
 "overloaded add_agent!, otherwise won't work"
-function add_agent!(person::Person,house::House,model::ABM{CountryMap})
+function add_agent!(person::Person,house::House,model::DemographicABM)
     reset_person_house!(person)
     set_person_house!(person,house)
     add_agent_pos!(person,model)
 end
 
 # needed by add_agent!(model)
-add_agent!(house,::Type{Person},model::ABM{CountryMap}) =
+add_agent!(house,::Type{Person},model::DemographicABM) =
     add_agent_pos!(Person(nextid(model),house),model)
 
 # needed by add_agent!(house,model)
-add_agent!(house::House,model::ABM{CountryMap}) =
+add_agent!(house::House,model::DemographicABM) =
     add_agent!(house,Person,model)
 
 # needed by move_agent!(person,model)
-function move_agent!(person,house,model::ABM{CountryMap})
+function move_agent!(person,house,model::DemographicABM)
     reset_person_house!(person)
     set_person_house!(person,house)
 end
 
 # needed by kill_agent
-function remove_agent_from_space!(person, model::ABM{CountryMap})
+function remove_agent_from_space!(person, model::DemographicABM)
     reset_person_house!(person)
 end
 
-positions(model::ABM{CountryMap}) = allhouses(model.space.towns)
-has_empty_positions(model::ABM{CountryMap}) = length(empty_positions(model)) > 0
+positions(model::DemographicABM) = allhouses(model.space.towns)
+has_empty_positions(model::DemographicABM) = length(empty_positions(model)) > 0
 
 notneeded() = error("not needed")
-function ids_in_position(house::House,model::ABM{CountryMap})
+function ids_in_position(house::House,model::DemographicABM)
     @warn "ids_in_position(*) was called"
     notneeded()
 end
-ids_in_position(person::Person,model::ABM{CountryMap}) = ids_in_position(person.pos,model)
+ids_in_position(person::Person,model::DemographicABM) = ids_in_position(person.pos,model)
 
 "Shallow implementation subject to improvement by considering town densities"
-function random_position(model::ABM{CountryMap})
+function random_position(model::DemographicABM)
     town = random_town(model)
     house = rand(town.houses)
     return house # bluestyle :/
 end
-random_empty(model::ABM{CountryMap}) = rand(empty_positions(model))
+random_empty(model::DemographicABM) = rand(empty_positions(model))
