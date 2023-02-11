@@ -12,7 +12,7 @@ end
 DemographicMap(name,mtgd) = DemographicMap(name,mtgd,Town[])
 
 @delegate_onefield(DemographicMap, towns,
-    [empty_positions, positions, empty_houses, allhouses,
+    [empty_positions, positions, empty_houses, houses,
         random_town, random_house, random_empty_house,
         empty_positions, positions ])
 

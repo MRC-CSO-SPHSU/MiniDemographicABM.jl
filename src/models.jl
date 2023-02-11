@@ -39,7 +39,7 @@ UKDemographicABM(parameters) =
 
 @delegate_onefield(DemographicABM, space,
     [random_town, positions, empty_positions,
-        empty_houses, allhouses,
+        empty_houses, houses,
         random_house, random_empty_house,
         add_empty_house!, add_empty_houses!])
 
@@ -86,7 +86,7 @@ function remove_agent_from_space!(person, model::DemographicABM)
     reset_person_house!(person)
 end
 
-positions(model::DemographicABM) = allhouses(model.space.towns)
+positions(model::DemographicABM) = houses(model.space.towns)
 has_empty_positions(model::DemographicABM) = length(empty_positions(model)) > 0
 
 notneeded() = error("not needed")

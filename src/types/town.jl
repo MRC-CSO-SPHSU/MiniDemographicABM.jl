@@ -35,19 +35,19 @@ struct EmptyHouses <: GetHouses end
 
 const Towns = Union{TownH,Vector} # One town or list of towns
 
-allhouses(town::TownH,::EmptyHouses) = [ house for house in town.houses if isempty(house) ]
-allhouses(town::TownH,::AllHouses) = town.houses
-allhouses(town::TownH) = allhouses(town,AllHouses())
-function allhouses(towns::Vector,ret::GetHouses)
-    houses = House[]
+houses(town::TownH,::EmptyHouses) = [ house for house in town.houses if isempty(house) ]
+houses(town::TownH,::AllHouses) = town.houses
+houses(town::TownH) = houses(town,AllHouses())
+function houses(towns::Vector,ret::GetHouses)
+    hs = House[]
     for town in towns
-        houses = vcat(houses,allhouses(town,ret))
+        hs = vcat(hs,houses(town,ret))
     end
-    return houses
+    return hs
 end
-allhouses(towns::Vector) = allhouses(towns,AllHouses())
+houses(towns::Vector) = houses(towns,AllHouses())
 
-empty_houses(towns::Towns) = allhouses(towns,EmptyHouses())
+empty_houses(towns::Towns) = houses(towns,EmptyHouses())
 
 has_empty_house(town::TownH) = length(empty_houses(town)) > 0
 function has_empty_house(towns::Vector)
@@ -64,7 +64,7 @@ end
 # Agents.jl API-like functions
 ##############################
 
-positions(towns::Towns, ret::GetHouses = AllHouses()) = allhouses(towns,ret)
+positions(towns::Towns, ret::GetHouses = AllHouses()) = houses(towns,ret)
 
 ##############################
 # Further stuffs
