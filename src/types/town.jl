@@ -29,16 +29,16 @@ function Base.show(io::IO, town::TownH)
                 "$(length(town.houses)) houses")
 end
 
-abstract type GetHouses end
-struct AllHouses <: GetHouses end
-struct EmptyHouses <: GetHouses end
+abstract type HousesType end
+struct AllHouses <: HousesType end
+struct EmptyHouses <: HousesType end
 
 const Towns = Union{TownH,Vector} # One town or list of towns
 
 houses(town::TownH,::EmptyHouses) = [ house for house in town.houses if isempty(house) ]
 houses(town::TownH,::AllHouses) = town.houses
 houses(town::TownH) = houses(town,AllHouses())
-function houses(towns::Vector,ret::GetHouses)
+function houses(towns::Vector,ret::HousesType)
     hs = House[]
     for town in towns
         hs = vcat(hs,houses(town,ret))
@@ -64,7 +64,7 @@ end
 # Agents.jl API-like functions
 ##############################
 
-positions(towns::Towns, ret::GetHouses = AllHouses()) = houses(towns,ret)
+positions(towns::Towns, ret::HousesType = AllHouses()) = houses(towns,ret)
 
 ##############################
 # Further stuffs
