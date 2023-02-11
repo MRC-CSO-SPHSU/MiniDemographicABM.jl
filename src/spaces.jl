@@ -12,9 +12,9 @@ end
 DemographicMap(name,mtgd) = DemographicMap(name,mtgd,Town[])
 
 @delegate_onefield(DemographicMap, towns,
-    [empty_positions, positions, empty_houses, houses,
+    [empty_positions, positions, empty_houses, houses, has_empty_house,
         random_town, random_house, random_empty_house,
-        empty_positions, positions ])
+        empty_positions, positions, has_empty_positions, random_position, random_empty ])
 
 # could be useful to forward delegate functions with arguments of space.towns
 

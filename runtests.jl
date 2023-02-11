@@ -77,6 +77,9 @@ include("src/models.jl")
         add_empty_houses!(model,10)
         @test length(empty_houses(model)) == nemptyhouses + 1 + 10
 
+        @test has_empty_positions(model)
+        @test !undefined(random_empty(model))
+
     end
 
 end #

@@ -1,5 +1,5 @@
 using StatsBase
-import Agents: positions
+import Agents: positions, has_empty_positions, random_position, random_empty
 
 """
  Potentially possible: to maintain the following
@@ -59,17 +59,25 @@ function has_empty_house(towns::Vector)
     return false
 end
 
+##############################
+# Further stuffs
+##############################
+
+empty_positions(towns::Towns) = houses(towns,EmptyHouses())
+random_house(town::TownH) = rand(houses(town))
+function random_house(towns)
+    town = random_town(towns)
+    house = rand(town.houses)
+    return house # bluestyle :/
+end
+random_empty_house(towns::Towns) = rand(empty_positions(towns))
+
 
 ##############################
 # Agents.jl API-like functions
 ##############################
 
 positions(towns::Towns, ret::HousesType = AllHouses()) = houses(towns,ret)
-
-##############################
-# Further stuffs
-##############################
-
-empty_positions(towns::Towns) = positions(towns,EmptyHouses())
-random_house(towns::Towns) = rand(positions(towns))
-random_empty_house(towns::Towns) = rand(empty_positions(towns))
+has_empty_positions(towns::Towns) = has_empty_house(towns)
+random_position(towns) = random_house(towns)
+random_empty(towns) = rand(empty_positions(towns))

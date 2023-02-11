@@ -10,9 +10,8 @@ using Agents
 using Parameters
 using TypedDelegation
 
-import Agents: random_position, add_agent_to_space!, remove_agent_from_space!,
-    ids_in_position, has_empty_positions, random_empty,
-    add_agent!, move_agent!
+import Agents: add_agent_to_space!, remove_agent_from_space!,
+    ids_in_position, add_agent!, move_agent!
 
 include("util.jl")
 include("basictypes.jl")
@@ -40,7 +39,7 @@ UKDemographicABM(parameters) =
 @delegate_onefield(DemographicABM, space,
     [random_town, positions, empty_positions,
         empty_houses, houses,
-        random_house, random_empty_house,
+        random_house, random_empty_house, has_empty_positions, random_position, random_empty,
         add_empty_house!, add_empty_houses!])
 
 ##############################
@@ -86,20 +85,9 @@ function remove_agent_from_space!(person, model::DemographicABM)
     reset_person_house!(person)
 end
 
-positions(model::DemographicABM) = houses(model.space.towns)
-has_empty_positions(model::DemographicABM) = length(empty_positions(model)) > 0
-
 notneeded() = error("not needed")
 function ids_in_position(house::House,model::DemographicABM)
     @warn "ids_in_position(*) was called"
     notneeded()
 end
 ids_in_position(person::Person,model::DemographicABM) = ids_in_position(person.pos,model)
-
-"Shallow implementation subject to improvement by considering town densities"
-function random_position(model::DemographicABM)
-    town = random_town(model)
-    house = rand(town.houses)
-    return house # bluestyle :/
-end
-random_empty(model::DemographicABM) = rand(empty_positions(model))
