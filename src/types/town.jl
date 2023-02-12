@@ -8,6 +8,8 @@ import Agents: positions, has_empty_positions, random_position, random_empty
  or to completely remove the vector of hosues and associate it to a space type
  In a realistic real-life large-scale model, it seems best to combine both
  approaches (i.e. redundant data to be cached in a space type)
+
+ Moreover, density can be made variable (according to historical data)
 """
 struct TownH{HouseType}
     name::String
