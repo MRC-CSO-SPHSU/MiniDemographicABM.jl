@@ -40,8 +40,8 @@ DemographicABM(space::DemographicMap, parameters::DemographyPars) =
 # The following is needed by add_agent!(agent,model)
 #
 function add_agent_to_space!(person, model::DemographicABM)
-    @assert !ishomeless(person)
-    @assert hometown(person) in model.space.towns
+    # @assert !ishomeless(person)
+    @assert ishomeless(person) || hometown(person) in model.space.towns
     @assert home(person) in hometown(person).houses
     # also possible
     # push!(hometown(person).population,person)

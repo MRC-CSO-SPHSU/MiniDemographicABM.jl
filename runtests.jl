@@ -10,7 +10,7 @@ julia> include("runtests.jl")
 
 using Agents
 using Test
-include("src/models.jl")
+include("src/modelspec.jl")
 
 
 @testset "MiniDemographicABM Testing" begin
@@ -62,7 +62,6 @@ include("src/models.jl")
         @test !undefined(random_position(model))
     end # Exploring Agents.jl
 
-
     @testset verbose=true "exploring some foo[!](model,*)" begin
 
         @test !undefined(random_town(model))
@@ -80,6 +79,22 @@ include("src/models.jl")
         @test has_empty_positions(model)
         @test !undefined(random_empty(model))
 
+    end # foo[!](model,*)
+
+    @testset verbose=true "exploring component declaration" begin
+
+        UKMap = declare_UK_map()
+        @test length(UKMap.towns) > 0
+
+        pars = DemographyPars(initialPop = 1000)
+        UKModel = UKDemographicABM(pars)
+        seed!(UKModel,floor(Int,time()))
+
+        @test typeof(UKModel) <: DemographicABM
+        @test typeof(UKModel) <: ABM
+        @test UKModel.initialPop == 1000
+
+        declare_population!(UKModel)
     end
 
 end #
