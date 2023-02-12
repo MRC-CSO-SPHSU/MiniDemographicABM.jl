@@ -1,3 +1,6 @@
+using Agents
+include("../util.jl")
+
 @enum Gender male female
 #@enum Status married single
 random_gender() = rand((male,female))

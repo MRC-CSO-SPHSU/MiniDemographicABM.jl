@@ -2,6 +2,9 @@
 space types for human populations
 """
 
+using TypedDelegation
+include("basictypes.jl")
+
 abstract type PopulationSpace <: Agents.DiscreteSpace end
 struct DemographicMap <: PopulationSpace
     countryname::String

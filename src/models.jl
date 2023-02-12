@@ -6,15 +6,11 @@ ABM(Person,space;properties=DemographyPars(initialPop=100))
 functions with argument model are expected to be found here.
 """
 
-using Agents
 using Parameters
-using TypedDelegation
 
 import Agents: add_agent_to_space!, remove_agent_from_space!,
     ids_in_position, add_agent!, move_agent!
 
-include("util.jl")
-include("basictypes.jl")
 include("spaces.jl")
 
 #######################################
@@ -29,12 +25,6 @@ end
 const DemographicABM = ABM{DemographicMap}
 DemographicABM(space::DemographicMap, parameters::DemographyPars) =
     ABM(Person, space; properties = parameters)
-
-#=
-UKDemographicABM(parameters) =
-    ABM(Person,space;properties=DemographyPars(initialPop=100))
-# forward delegations could be useful from model.space
-=#
 
 @delegate_onefield(DemographicABM, space,
     [random_town, positions, empty_positions,
