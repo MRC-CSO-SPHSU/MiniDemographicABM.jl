@@ -24,6 +24,11 @@ PersonH{HouseType}(id, pos) where HouseType =
 
 home(person) = person.pos
 hometown(person) = person.pos.town
+age(person) = person.age
+ismale(person) = person.gender == male
+isfemale(person) = person.gender == female
+isadult(person) = person.age >= 18
+ischild(person) = person.age < 18
 age2yearsmonths(person) = date2yearsmonths(person.age)
 
 function Base.show(io::IO, person::PersonH)
