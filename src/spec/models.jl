@@ -21,6 +21,7 @@ include("spaces.jl")
 @with_kw mutable struct DemographyPars
     initialPop::Int = 100
     startProbMarried::Float64 = 0.8  # Probability of an adult man is being married
+    maxNumberOfMarriageCand::Int64 = 100
 end
 
 const DemographicABM = ABM{DemographicMap}

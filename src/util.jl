@@ -13,9 +13,10 @@ notneeded(msg = "") = error("not needed" * msg)
 invalid_id() = 0
 has_invalid_id(agent::AbstractAgent) = agent.id == invalid_id()
 
-function show_number_of_kids_per_man_distribution(model)
+function show_number_of_kids_per_distribution(model)
     population = allagents(model)
-    marriedMen = [man for man in pop2 if !issingle(man) && ismale(man)]
+    marriedMen = [man for man in pop2 if ismale(man) &&
+        (!issingle(man) || has_children(man)) ]
     numOfKidsDist = [ length(children(man)) for man in marriedMen ]
     histogram(numOfKidsDist,bins=0:15)
 end

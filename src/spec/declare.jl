@@ -96,7 +96,7 @@ function init_kinship!(model)
         end
     end
 
-    ncandidates = floor(Int,length(adultWomen) / 10)
+    ncandidates = min(model.maxNumberOfMarriageCand,floor(Int,length(adultWomen) / 10))
     weight = Weights(zeros(ncandidates))
 
     # Establish partners
@@ -105,7 +105,8 @@ function init_kinship!(model)
         if rand() < model.startProbMarried
             wives = sample(adultWomen,ncandidates,replace=false)
             for idx in 1:ncandidates
-                weight[idx] = !issingle(wives[idx]) ? 0.0 : _marriage_selection_weight(man,wives[idx])
+                weight[idx] = !issingle(wives[idx]) ? 0.0 :
+                    _marriage_selection_weight(man,wives[idx])
             end
             woman = sample(wives,weight)
             set_as_partners!(man,woman)
