@@ -20,7 +20,7 @@ Town(name,density,location) = Town(name,density,location,House[])
 const UNDEFINED_LOCATION = (-1,-1)
 const UNDEFINED_TOWN = Town("",0,UNDEFINED_LOCATION)
 const UNDEFINED_HOUSE = House(UNDEFINED_TOWN,UNDEFINED_LOCATION)
-const NOPERSON = Person(0,UNDEFINED_HOUSE,male,-1//1)
+const NOPERSON = Person(invalid_id(),UNDEFINED_HOUSE,male,-1//1)
 noperson(::Type{House}) = NOPERSON
 
 ############################

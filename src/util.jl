@@ -9,3 +9,19 @@ end
 
 notimplemented(msg = "") = error("not implemeented" * msg)
 notneeded(msg = "") = error("not needed" * msg)
+
+invalid_id() = 0
+has_invalid_id(agent::AbstractAgent) = agent.id == invalid_id()
+
+function show_number_of_kids_per_man_distribution(model)
+    population = allagents(model)
+    marriedMen = [man for man in pop2 if !issingle(man) && ismale(man)]
+    numOfKidsDist = [ length(children(man)) for man in marriedMen ]
+    histogram(numOfKidsDist,bins=0:15)
+end
+
+function show_age_distribution(model)
+    population = allagents(model)
+    agedist = [ person.age for person in pop2 ]
+    histogram(agedist)
+end
