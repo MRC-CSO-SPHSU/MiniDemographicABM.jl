@@ -6,3 +6,6 @@ function date2yearsmonths(date::Rational{Int})
     months = trunc(Int, numerator(date) % denominator(date) * 12 / denominator(date) )
     return (years , months)
 end
+
+notimplemented(msg = "") = error("not implemeented" * msg)
+notneeded(msg = "") = error("not needed" * msg)
