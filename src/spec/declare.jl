@@ -5,7 +5,7 @@ Collection of methods for declaring the main components of a demographic model:
 """
 
 using Distributions
-#using StatsBase
+using StatsBase
 
 include("models.jl")
 
@@ -25,7 +25,7 @@ const UKDENSITY = [ 0.0 0.1 0.2 0.1 0.0 0.0 0.0 0.0;
                     0.0 0.0 0.2 0.4 0.6 1.0 1.0 0.0;
                     0.0 0.2 0.3 0.0 0.0 0.0 0.0 0.0 ]
 
-# TODO
+# TODO nice to have
 # const UKTOWNNAMES = ...
 
 function declare_UK_map()
@@ -103,24 +103,29 @@ function init_kinship!(model)
     for man in adultMen
         @assert issingle(man)
         if rand() < model.startProbMarried
-            wcandidates = sample(adultWomen,ncandidates,replace=false)
+            wives = sample(adultWomen,ncandidates,replace=false)
             for idx in 1:ncandidates
-                weight[idx] = !issingle(wcandidates[idx]) ? 0.0 : _marriage_selection_weight(man,wcandidates[idx])
+                weight[idx] = !issingle(wives[idx]) ? 0.0 : _marriage_selection_weight(man,wives[idx])
             end
-            woman = sample(wcandidates,weight)
+            woman = sample(wives,weight)
             set_as_partners!(man,woman)
         end
     end
 
-    # distribute kids among partners
+    marriedMen = [man for man in adultMen if !issingle(man)]
+    for child in kids
+        fathers = [ father for father in marriedMen if
+            min(age(father),age(partner(father))) - age(child) > 18 + 9 //12 &&
+            age(partner(father)) - age(child) < 45 ]
+        father = rand(fathers)
+        set_as_parent!(child,father)
+        set_as_parent!(child,partner(father))
+    end
 
     nothing
 end
 
     #=
-
-
-
     while nagents(model) < model.initialPop
         if rand() < model.startProbMarried  # create a family
             house = add_newhouse!(model)
