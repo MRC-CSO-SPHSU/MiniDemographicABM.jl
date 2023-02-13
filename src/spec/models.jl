@@ -7,6 +7,7 @@ functions with argument model are expected to be found here.
 """
 
 using Parameters
+include("../util.jl")
 
 import Agents: add_agent_to_space!, remove_agent_from_space!,
     ids_in_position, add_agent!, move_agent!
@@ -19,7 +20,7 @@ include("spaces.jl")
 
 @with_kw mutable struct DemographyPars
     initialPop::Int = 100
-    startProbMarried::Float64 = 0.8
+    startProbMarried::Float64 = 0.8  # Probability of an adult man is being married
 end
 
 const DemographicABM = ABM{DemographicMap}
@@ -57,12 +58,12 @@ function add_agent!(person::Person,house::House,model::DemographicABM)
 end
 
 # needed by add_agent!(model)
-add_agent!(house,::Type{Person},model::DemographicABM) =
-    add_agent_pos!(Person(nextid(model),house),model)
+add_agent!(house,::Type{Person},model::DemographicABM;age,gender=random_gender()) =
+    add_agent_pos!(Person(nextid(model),house,gender=gender,age=age),model)
 
 # needed by add_agent!(house,model)
-add_agent!(house::House,model::DemographicABM) =
-    add_agent!(house,Person,model)
+add_agent!(house::House,model::DemographicABM;age,gender=random_gender()) =
+    add_agent!(house,Person,model;age=age,gender=gender)
 
 # needed by move_agent!(person,model)
 function move_agent!(person,house,model::DemographicABM)
@@ -75,7 +76,6 @@ function remove_agent_from_space!(person, model::DemographicABM)
     reset_person_house!(person)
 end
 
-notneeded() = error("not needed")
 function ids_in_position(house::House,model::DemographicABM)
     @warn "ids_in_position(*) was called"
     notneeded()

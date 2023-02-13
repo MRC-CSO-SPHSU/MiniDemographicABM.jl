@@ -16,9 +16,9 @@ include("src/modelspec.jl")
 @testset "MiniDemographicABM Testing" begin
 
     towns = [ Town("A", 0.9, (1,1), House[]),
-                    Town("B", 0.3, (10,5), House[]),
-                    Town("C", 0.5, (4,6), House[]),
-                    Town("D", 0.7, (2,2), House[]) ]
+              Town("B", 0.3, (10,5), House[]),
+              Town("C", 0.5, (4,6), House[]),
+              Town("D", 0.7, (2,2), House[]) ]
 
     maxTownGridDim = 10
     space = DemographicMap("WaqWaq",maxTownGridDim,towns)
@@ -33,19 +33,19 @@ include("src/modelspec.jl")
         @test length(positions(model)) == 100
         @test model.initialPop == 100
 
-        person1 = add_agent_pos!(Person(1,houses[1]),model)
+        person1 = add_agent_pos!(Person(1,houses[1],random_gender(),20), model)
         @test home(person1) == houses[1]
 
-        add_agent!(Person(nextid(model),UNDEFINED_HOUSE),houses[2],model)
+        add_agent!(Person(nextid(model),UNDEFINED_HOUSE,random_gender(),31), houses[2], model)
         @test home(model[2]) == houses[2]
 
-        add_agent!(model)
+        add_agent!(model; age = 31)
         @test !ishomeless(model[3])
 
-        add_agent!(model)
+        add_agent!(model,age=40,gender=female)
         @test nagents(model) == 4
 
-        add_agent!(houses[3],model)
+        add_agent!(houses[3],model,age=42)
         @test home(model[5]) == houses[3]
         @test length(allagents(model)) == 5
 
@@ -95,6 +95,10 @@ include("src/modelspec.jl")
         @test UKModel.initialPop == 1000
 
         declare_population!(UKModel)
+        @time init_kinship!(UKModel)
+        adultMen = [ man for man in allagents(UKModel) if ismale(man) && isadult(man) ]
+        marriedMen = [ man for man in adultMen if !issingle(man) ]
+        @test length(marriedMen) / length(adultMen) > (model.startProbMarried - 0.1)
     end
 
 end #

@@ -5,6 +5,7 @@ Collection of methods for declaring the main components of a demographic model:
 """
 
 using Distributions
+#using StatsBase
 
 include("models.jl")
 
@@ -54,15 +55,27 @@ Simplified model for an initial population
 function declare_population!(model)
     @assert nagents(model) == 0
     dist = Normal(0,0.25*100*12) # potentialMaxAge * 12 months
-    agedist = abs.(rand(dist,model.initialPop))
+    agedist = floor.(Int,abs.(rand(dist,model.initialPop)))
 
     # Create population with agedist
-    for age in agedist
-        person = Person(nextid(model),UNDEFINED_HOUSE,random_gender(),age)
+    for a in agedist
+        person = Person(nextid(model),UNDEFINED_HOUSE,random_gender(), a // 12)
         add_agent_pos!(person,model)
     end
 
     return allagents(model)
+end
+
+function _marriage_selection_weight(man,woman)
+    @assert gender(man) == male && gender(woman) == female
+    agediff = age(man) - age(woman)
+    ageindex = 1.0
+    if agediff > 5
+        ageindex = 1.0 / (agediff-5+1)
+    elseif ageindex < -2
+        ageindex = 1.0 / (agediff+2-1)
+    end
+    return ageindex
 end
 
 """
@@ -73,6 +86,7 @@ Assumptions:
 """
 function init_kinship!(model)
     @assert nagents(model) > 0
+
     adultWomen = Person[] ; adultMen = Person[] ; kids = Person[]
     for person in allagents(model)
         if ischild(person)
@@ -82,10 +96,31 @@ function init_kinship!(model)
         end
     end
 
+    ncandidates = floor(Int,length(adultWomen) / 10)
+    weight = Weights(zeros(ncandidates))
+
     # Establish partners
+    for man in adultMen
+        @assert issingle(man)
+        if rand() < model.startProbMarried
+            wcandidates = sample(adultWomen,ncandidates,replace=false)
+            for idx in 1:ncandidates
+                weight[idx] = !issingle(wcandidates[idx]) ? 0.0 : _marriage_selection_weight(man,wcandidates[idx])
+            end
+            woman = sample(wcandidates,weight)
+            set_as_partners!(man,woman)
+        end
+    end
+
     # distribute kids among partners
 
+    nothing
+end
+
     #=
+
+
+
     while nagents(model) < model.initialPop
         if rand() < model.startProbMarried  # create a family
             house = add_newhouse!(model)
@@ -101,7 +136,3 @@ function init_kinship!(model)
         end
     end
     =#
-
-end
-
-function init_demography!(model) end
