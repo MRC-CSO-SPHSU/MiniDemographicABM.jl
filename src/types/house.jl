@@ -12,6 +12,7 @@ struct HouseTP{TownType,PersonType}
     end
 end
 
+occupants(house) = house.occupants
 isempty(house::HouseTP) = isempty(house.occupants)
 remove_occupant!(house::HouseTP,person) =
     splice!(house.occupants, findfirst(x -> x == person, house.occupants))
