@@ -1,5 +1,6 @@
 using StatsBase
-import Agents: positions, empty_positions, has_empty_positions, random_position, random_empty
+import Agents: positions, empty_positions, has_empty_positions,
+    random_position, random_empty
 
 """
  Potentially possible: to maintain the following
