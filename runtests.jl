@@ -120,28 +120,25 @@ include("src/modelspec.jl")
 
     @testset verbose=true "exploring stepping functions " begin
 
-        ages = [person.age for person in allagents(UKModel)]
+        idx = rand(1:nagents(UKModel))
+        person = UKModel[idx]
+        ageidx = age(person)
+
         step!(UKModel,age_step!)
-        agesdt = [person.age for person in allagents(UKModel)]
-        idx = rand(1:length(ages))
-        @test agesdt[idx] - ages[idx] == UKModel.dt
+        @test ageidx - age(person) == -UKModel.dt
 
         step!(UKModel,age_step!,3)
-        agesdt = [person.age for person in allagents(UKModel)]
-        @test agesdt[idx] - ages[idx] == 4*UKModel.dt
+        @test ageidx - age(person) == -4*UKModel.dt
 
         @time run!(UKModel,age_step!, 40)
-        agesdt = [person.age for person in allagents(UKModel)]
-        @test agesdt[idx] - ages[idx] == 44*UKModel.dt
+        @test ageidx - age(person) == -44*UKModel.dt
 
         step!(UKModel,dummystep,population_age_step!)
-        agesdt = [person.age for person in allagents(UKModel)]
-        @test agesdt[idx] - ages[idx] == 45*UKModel.dt
+        @test ageidx - age(person) == -45*UKModel.dt
 
         step!(UKModel,age_step!,population_age_step!)
-        agesdt = [person.age for person in allagents(UKModel)]
-        @test agesdt[idx] - ages[idx] == 47*UKModel.dt
-
+        @test ageidx - age(person)== -47*UKModel.dt
     end
+
 
 end #
