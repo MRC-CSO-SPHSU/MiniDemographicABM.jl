@@ -99,6 +99,18 @@ include("src/modelspec.jl")
         adultMen = [ man for man in allagents(UKModel) if ismale(man) && isadult(man) ]
         marriedMen = [ man for man in adultMen if !issingle(man) ]
         @test length(marriedMen) / length(adultMen) > (model.startProbMarried - 0.1)
+
+        @test verify_children_parents(UKModel)
+        @test verify_parentless_adults(UKModel)
+        @test verify_partnership(UKModel)
+        @test verify_homeless_population(UKModel)
+
+        init_housing!(UKModel)
+
+        @test verify_all_have_home(UKModel)
+        @test length(empty_positions(UKModel)) == 0
+        @test verify_housing_consistency(UKModel)
+        @test verify_families_live_together(UKModel)
     end
 
 end #
