@@ -54,8 +54,8 @@ ismale(person) = person.gender == male
 isfemale(person) = person.gender == female
 isadult(person) = person.age >= 18
 ischild(person) = person.age < 18
-issingle(person) =  partner(person) === noperson(housetype(person))
-has_children(person) = length(person.chidren) == 0
+issingle(person) =  partner(person) === noperson(person)
+has_children(person) = length(person.children) > 0
 ischildless(person) = !has_children(person)
 age2yearsmonths(person) = date2yearsmonths(person.age)
 
@@ -76,8 +76,8 @@ end
 function reset_partnership!(person)
     if !issingle(person)
         p = partner(person)
-        person.partner = NOPERSON
-        p.partner = NOPERSON
+        person.partner = noperson(person)
+        p.partner = noperson(person)
     end
     nothing
 end
