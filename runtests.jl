@@ -81,20 +81,24 @@ include("src/modelspec.jl")
 
     end # foo[!](model,*)
 
+    UKMap = declare_UK_map()
+    pars = DemographyPars(initialPop = 1000)
+    UKModel = UKDemographicABM(pars)
+    seed!(UKModel,floor(Int,time()))
+
     @testset verbose=true "exploring component declaration" begin
 
-        UKMap = declare_UK_map()
         @test length(UKMap.towns) > 0
-
-        pars = DemographyPars(initialPop = 1000)
-        UKModel = UKDemographicABM(pars)
-        seed!(UKModel,floor(Int,time()))
-
         @test typeof(UKModel) <: DemographicABM
         @test typeof(UKModel) <: ABM
         @test UKModel.initialPop == 1000
-
         declare_population!(UKModel)
+        @test nagents(UKModel) == UKModel.initialPop
+
+    end
+
+    @testset verbose=true "exploring model initialization" begin
+
         @time init_kinship!(UKModel)
         adultMen = [ man for man in allagents(UKModel) if ismale(man) && isadult(man) ]
         marriedMen = [ man for man in adultMen if !issingle(man) ]
@@ -111,6 +115,33 @@ include("src/modelspec.jl")
         @test length(empty_positions(UKModel)) == 0
         @test verify_housing_consistency(UKModel)
         @test verify_families_live_together(UKModel)
+
+    end
+
+    @testset verbose=true "exploring stepping functions " begin
+
+        ages = [person.age for person in allagents(UKModel)]
+        step!(UKModel,age_step!)
+        agesdt = [person.age for person in allagents(UKModel)]
+        idx = rand(1:length(ages))
+        @test agesdt[idx] - ages[idx] == UKModel.dt
+
+        step!(UKModel,age_step!,3)
+        agesdt = [person.age for person in allagents(UKModel)]
+        @test agesdt[idx] - ages[idx] == 4*UKModel.dt
+
+        @time run!(UKModel,age_step!, 40)
+        agesdt = [person.age for person in allagents(UKModel)]
+        @test agesdt[idx] - ages[idx] == 44*UKModel.dt
+
+        step!(UKModel,dummystep,population_age_step!)
+        agesdt = [person.age for person in allagents(UKModel)]
+        @test agesdt[idx] - ages[idx] == 45*UKModel.dt
+
+        step!(UKModel,age_step!,population_age_step!)
+        agesdt = [person.age for person in allagents(UKModel)]
+        @test agesdt[idx] - ages[idx] == 47*UKModel.dt
+
     end
 
 end #

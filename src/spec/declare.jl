@@ -54,6 +54,7 @@ Simplified model for an initial population
 """
 function declare_population!(model)
     @assert nagents(model) == 0
+    @assert model.dt == 1//12
     dist = Normal(0,0.25*100*12) # potentialMaxAge * 12 months
     agedist = floor.(Int,abs.(rand(dist,model.initialPop)))
 

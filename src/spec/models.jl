@@ -22,6 +22,7 @@ include("spaces.jl")
     initialPop::Int = 100
     startProbMarried::Float64 = 0.8  # Probability of an adult man is being married
     maxNumberOfMarriageCand::Int64 = 100
+    dt::Rational{Int} = 1 // 12 #
 end
 
 const DemographicABM = ABM{DemographicMap}
