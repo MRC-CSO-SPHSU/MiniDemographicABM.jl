@@ -54,8 +54,8 @@ end
 
 "overloaded add_agent!, otherwise won't work"
 function add_agent!(person::Person,house::House,model::DemographicABM)
-    reset_person_house!(person)
-    set_person_house!(person,house)
+    reset_house!(person)
+    set_house!(person,house)
     add_agent_pos!(person,model)
 end
 
@@ -69,13 +69,13 @@ add_agent!(house::House,model::DemographicABM;age,gender=random_gender()) =
 
 # needed by move_agent!(person,model)
 function move_agent!(person,house,model::DemographicABM)
-    reset_person_house!(person)
-    set_person_house!(person,house)
+    reset_house!(person)
+    set_house!(person,house)
 end
 
 # needed by kill_agent
 function remove_agent_from_space!(person, model::DemographicABM)
-    reset_person_house!(person)
+    reset_house!(person)
 end
 
 function ids_in_position(house::House,model::DemographicABM)

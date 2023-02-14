@@ -31,7 +31,7 @@ undefined(town::Town) = town == UNDEFINED_TOWN
 undefined(house::House) = house == UNDEFINED_HOUSE
 ishomeless(person) = undefined(home(person))
 
-function reset_person_house!(person)
+function reset_house!(person)
     if !ishomeless(person)
         remove_occupant!(home(person),person)
         person.pos = UNDEFINED_HOUSE
@@ -39,8 +39,8 @@ function reset_person_house!(person)
     @assert undefined(home(person))
 end
 
-function set_person_house!(person,house)
-    reset_person_house!(person)
+function set_house!(person,house)
+    reset_house!(person)
     person.pos = house
     add_occupant!(house,person)
 end
