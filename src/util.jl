@@ -25,6 +25,12 @@ end
 
 show_age_distribution(model) = histogram([ person.age for person in allagents(model) ])
 
+function show_agediff_of_married_dist(model)
+    agediff = [age(man)-age(partner(man)) for man in allagents(model) if
+                !issingle(man) && ismale(man)]
+    histogram(agediff)
+end
+
 "before initializing housing of a population"
 function verify_homeless_population(model)
     for person in allagents(model)
