@@ -2,6 +2,7 @@
 Basic data types for Agent-based model including Person agents and space-related data types
 """
 
+include("types/clock.jl")
 include("types/town.jl")
 include("types/house.jl")
 include("types/person.jl")

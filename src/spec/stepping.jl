@@ -7,7 +7,7 @@ Stepping functions for evolving
     or to use agent-specific schudlers as well
 """
 
-age_step!(person,model) = person.age += isalive(person) ? dt(model.ticker) : zero(person.age)
+age_step!(person,model) = person.age += isalive(person) ? dt(model.clock) : zero(person.age)
 
 function population_age_step!(model)
     for person in allagents(model)
@@ -23,8 +23,8 @@ function death_step!(person, model)
                         exp(age(person) / model.maleAgeScaling)  * model.maleAgeDieProb :
                         exp(age(person) / model.femaleAgeScaling) * model.femaleAgeDieProb
     rawRate = model.baseDieProb + ageDieProb
-    @show rawRate
-    if rand() < p_yearly2monthly(rawRate)
+    deathInstProb = instantaneous_probability(rate,model.clock)
+    if rand() < deathInstProb
         set_dead!(person)
         return true
     end

@@ -54,13 +54,13 @@ Simplified model for an initial population
 """
 function declare_population!(model)
     @assert nagents(model) == 0
-    dist = Normal(0,0.25*100*num_ticks_year(model.ticker))
+    dist = Normal(0,0.25*100*num_ticks_year(model.clock))
     agedist = floor.(Int,abs.(rand(dist,model.initialPop)))
 
     # Create population with agedist
     for a in agedist
         person = Person(nextid(model),UNDEFINED_HOUSE,random_gender(),
-                        a // num_ticks_year(model.ticker))
+                        a // num_ticks_year(model.clock))
         add_agent_pos!(person,model)
     end
 
