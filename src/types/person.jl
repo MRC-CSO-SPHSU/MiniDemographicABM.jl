@@ -11,12 +11,13 @@ mutable struct PersonH{HouseType} <: AbstractAgent
     pos::HouseType
     const gender::Gender
     age::Rational{Int}
+    alive::Bool
     partner::PersonH{HouseType}
     father::PersonH{HouseType}
     mother::PersonH{HouseType}
     children::Vector{PersonH{HouseType}}
     function PersonH{HouseType}(id,pos,gender,age) where HouseType
-        person = new{HouseType}(id,pos,gender,age)
+        person = new{HouseType}(id,pos,gender,age,true)
         if has_invalid_id(person)
             return person
         end
@@ -54,6 +55,8 @@ ismale(person) = person.gender == male
 isfemale(person) = person.gender == female
 isadult(person) = person.age >= 18
 ischild(person) = person.age < 18
+isalive(person) = person.alive
+isdead(person) = !person.alive
 issingle(person) =  partner(person) === noperson(person)
 has_children(person) = length(person.children) > 0
 ischildless(person) = !has_children(person)
@@ -101,4 +104,17 @@ function set_as_parent!(child,parent)
         child.mother = parent
     end
     push!(parent.children,child)
+end
+
+############
+###
+############
+
+function set_dead!(person)
+    person.alive = false
+    reset_house!(person)
+    if !issingle(person)
+        resolve_partnership!(partner(person),person)
+    end
+    nothing
 end
