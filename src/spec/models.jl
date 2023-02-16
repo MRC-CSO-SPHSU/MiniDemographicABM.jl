@@ -18,12 +18,35 @@ include("spaces.jl")
 #  other model-based functions & types
 #######################################
 
-@with_kw mutable struct DemographyPars
+abstract type Ticker end
+struct Monthly <: Ticker end
+struct Daily <: Ticker end
+struct Hourly <: Ticker end
+
+num_ticks_year(::Monthly) = 12
+num_ticks_year(::Daily) = 365 # or 12 * 30.5
+num_ticks_year(::Hourly) = 365 * 24
+dt(ticker::Ticker) = 1 // num_ticks_year(ticker)
+
+@with_kw mutable struct DemographyPars{T <: Ticker}
+    # basic fields
+    ticker::T = T()
     initialPop::Int = 100
+    # Initialization parameters
     startProbMarried::Float64 = 0.8  # Probability of an adult man is being married
     maxNumberOfMarriageCand::Int64 = 100
-    dt::Rational{Int} = 1 // 12 #
+    # death parameters / yearly comulative (adhoc no model identification conducted)
+    baseDieProb::Float64            = 0.0001
+    maleAgeDieProb::Float64         = 0.00021
+    maleAgeScaling::Float64         = 14.0
+    femaleAgeDieProb::Float64       = 0.00019
+    femaleAgeScaling::Float64       = 15.5
 end
+
+#@delegate_onefield(DemographyPars, ticker, [num_ticks_year, dt])
+# num_ticks_year(pars::DemographyPars) = num_ticks_year(pars.ticker)
+# dt(pars::DemographyPars) = dt(pars.ticker)
+
 
 const DemographicABM = ABM{DemographicMap}
 DemographicABM(space::DemographicMap, parameters::DemographyPars) =
@@ -34,6 +57,8 @@ DemographicABM(space::DemographicMap, parameters::DemographyPars) =
         empty_houses, houses,
         random_house, random_empty_house, has_empty_positions, random_position, random_empty,
         add_empty_house!, add_empty_houses!])
+
+dt(model::DemographicABM) = dt(model.ticker)
 
 ##############################
 # extended Agents.jl functions
