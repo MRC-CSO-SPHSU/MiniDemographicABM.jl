@@ -165,11 +165,19 @@ include("src/modelspec.jl")
         idx = rand(1:nagents(UKHourlyModel))
         person = UKHourlyModel[idx]
         ageidx = age(person)
-        println("run!: running 1 year of age_steps in a hourly rate")
-        @time run!(UKHourlyModel,age_step!, 365 * 24)
-        @test ageidx - age(person) == -(365*24)*dt(UKHourlyModel)
-        @test ageidx - age(person) == -1
+        println("run!: running 1 month of age_steps in a hourly rate")
+        @time run!(UKHourlyModel,age_step!, 30 * 24)
+        @test ageidx - age(person) == -(30*24)*dt(UKHourlyModel)
+        @test format_time(age(person) - ageidx,Daily()) == (0,0,30) # one day older
+        run!(UKHourlyModel,age_step!, 24) # 24 hours
+        @test format_time(age(person) - ageidx) == (0,1) # one month older
 
+    end
+
+    @testset "testing stepping functions" begin
+        idx = rand(1:nagents(UKHourlyModel))
+        person = UKHourlyModel[idx]
+        @time death_step!(person,UKHourlyModel)
     end
 
     println("\n==========================================\n")

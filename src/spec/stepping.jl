@@ -18,12 +18,12 @@ end
 
 "leaving dead people in population"
 function death_step!(person, model)
-    if !alive(person) return false end
+    if !isalive(person) return false end
     ageDieProb  = ismale(person) ?
                         exp(age(person) / model.maleAgeScaling)  * model.maleAgeDieProb :
                         exp(age(person) / model.femaleAgeScaling) * model.femaleAgeDieProb
     rawRate = model.baseDieProb + ageDieProb
-    deathInstProb = instantaneous_probability(rate,model.clock)
+    deathInstProb = instantaneous_probability(rawRate,model.clock)
     if rand() < deathInstProb
         set_dead!(person)
         return true

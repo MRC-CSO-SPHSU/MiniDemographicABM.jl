@@ -114,7 +114,7 @@ function set_dead!(person)
     person.alive = false
     reset_house!(person)
     if !issingle(person)
-        resolve_partnership!(partner(person),person)
+        reset_partnership!(partner(person),person)
     end
     nothing
 end
