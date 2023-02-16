@@ -23,7 +23,7 @@ include("src/modelspec.jl")
     maxTownGridDim = 10
     space = DemographicMap("WaqWaq",maxTownGridDim,towns)
 
-    model = DemographicABM(space,DemographyPars(initialPop=100))
+    model = DemographicABM(space,DemographyPars{Monthly}(initialPop=100))
     seed!(model,floor(Int,time()))
     nhouses = 100
     houses = add_empty_houses!(space,nhouses)
@@ -81,64 +81,97 @@ include("src/modelspec.jl")
 
     end # foo[!](model,*)
 
-    UKMap = declare_UK_map()
-    pars = DemographyPars(initialPop = 1000)
-    UKModel = UKDemographicABM(pars)
-    seed!(UKModel,floor(Int,time()))
+    pars = DemographyPars{Monthly}(initialPop = 1000)
+    UKMonthlyModel = UKDemographicABM(pars)
+    seed!(UKMonthlyModel,floor(Int,time()))
 
     @testset verbose=true "exploring component declaration" begin
 
+        UKMap = declare_UK_map()
         @test length(UKMap.towns) > 0
-        @test typeof(UKModel) <: DemographicABM
-        @test typeof(UKModel) <: ABM
-        @test UKModel.initialPop == 1000
-        declare_population!(UKModel)
-        @test nagents(UKModel) == UKModel.initialPop
+        @test typeof(UKMonthlyModel) <: DemographicABM
+        @test typeof(UKMonthlyModel) <: ABM
+        @test UKMonthlyModel.initialPop == 1000
+
+        println("\n==========================================\n")
+        println("performance with IP = $(UKMonthlyModel.initialPop)")
+        println("declaring population:")
+        declare_population!(UKMonthlyModel)
+        @test nagents(UKMonthlyModel) == UKMonthlyModel.initialPop
 
     end
 
     @testset verbose=true "exploring model initialization" begin
 
-        @time init_kinship!(UKModel)
-        adultMen = [ man for man in allagents(UKModel) if ismale(man) && isadult(man) ]
+        println("init_kinship!:")
+        @time init_kinship!(UKMonthlyModel)
+        adultMen = [ man for man in allagents(UKMonthlyModel) if ismale(man) && isadult(man) ]
         marriedMen = [ man for man in adultMen if !issingle(man) ]
         @test length(marriedMen) / length(adultMen) > (model.startProbMarried - 0.1)
 
-        @test verify_children_parents(UKModel)
-        @test verify_parentless_adults(UKModel)
-        @test verify_partnership(UKModel)
-        @test verify_homeless_population(UKModel)
+        @test verify_children_parents(UKMonthlyModel)
+        @test verify_parentless_adults(UKMonthlyModel)
+        @test verify_partnership(UKMonthlyModel)
+        @test verify_homeless_population(UKMonthlyModel)
 
-        init_housing!(UKModel)
+        println("init_housing!:")
+        @time init_housing!(UKMonthlyModel)
 
-        @test verify_all_have_home(UKModel)
-        @test length(empty_positions(UKModel)) == 0
-        @test verify_housing_consistency(UKModel)
-        @test verify_families_live_together(UKModel)
+        @test verify_all_have_home(UKMonthlyModel)
+        @test length(empty_positions(UKMonthlyModel)) == 0
+        @test verify_housing_consistency(UKMonthlyModel)
+        @test verify_families_live_together(UKMonthlyModel)
 
     end
 
     @testset verbose=true "exploring stepping functions " begin
 
-        idx = rand(1:nagents(UKModel))
-        person = UKModel[idx]
+        idx = rand(1:nagents(UKMonthlyModel))
+        person = UKMonthlyModel[idx]
         ageidx = age(person)
 
-        step!(UKModel,age_step!)
-        @test ageidx - age(person) == -UKModel.dt
+        step!(UKMonthlyModel,age_step!)
+        @test ageidx - age(person) == -dt(UKMonthlyModel)
 
-        step!(UKModel,age_step!,3)
-        @test ageidx - age(person) == -4*UKModel.dt
+        step!(UKMonthlyModel,age_step!,3)
+        @test ageidx - age(person) == -4*dt(UKMonthlyModel)
 
-        @time run!(UKModel,age_step!, 40)
-        @test ageidx - age(person) == -44*UKModel.dt
+        println("running 40 age_steps")
+        @time run!(UKMonthlyModel,age_step!, 40)
+        @test ageidx - age(person) == -44*dt(UKMonthlyModel)
 
-        step!(UKModel,dummystep,population_age_step!)
-        @test ageidx - age(person) == -45*UKModel.dt
+        step!(UKMonthlyModel,dummystep,population_age_step!)
+        @test ageidx - age(person) == -45*dt(UKMonthlyModel)
 
-        step!(UKModel,age_step!,population_age_step!)
-        @test ageidx - age(person)== -47*UKModel.dt
+        step!(UKMonthlyModel,age_step!,population_age_step!)
+        @test ageidx - age(person)== -47*dt(UKMonthlyModel)
     end
 
+    parshours = DemographyPars{Hourly}(initialPop = 10_000)
+    UKHourlyModel = UKDemographicABM(parshours)
+    seed!(UKHourlyModel,floor(Int,time()))
 
+    println("\n==========================================\n")
+    println("Performance with IP = $(UKHourlyModel.initialPop)")
+    println("declare population:")
+    @time declare_population!(UKHourlyModel)
+    println("init_kinship!:")
+    @time init_kinship!(UKHourlyModel)
+    println("init_housing!:")
+    @time init_housing!(UKHourlyModel)
+
+    @testset "exploring hourly-ticking model" begin
+
+        idx = rand(1:nagents(UKHourlyModel))
+        person = UKHourlyModel[idx]
+        ageidx = age(person)
+        println("run!: running 1 year of age_steps in a hourly rate")
+        @time run!(UKHourlyModel,age_step!, 365 * 24)
+        @test ageidx - age(person) == -(365*24)*dt(UKHourlyModel)
+        @test ageidx - age(person) == -1
+
+    end
+
+    println("\n==========================================\n")
 end #
+nothing
