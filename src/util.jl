@@ -14,7 +14,11 @@ function plot_number_of_kids_per_distribution(model)
     histogram(numOfKidsDist,bins=0:15)
 end
 
-plot_age_distribution(model) = histogram([ person.age for person in allagents(model) ])
+plot_age_alive_distribution(model) =
+    histogram([ person.age for person in allagents(model) if isalive(person)])
+
+plot_age_deads_distribution(model) =
+    histogram([ person.age for person in allagents(model) if !isalive(person)])
 
 function plot_agediff_of_married_dist(model)
     agediff = [age(man)-age(partner(man)) for man in allagents(model) if
