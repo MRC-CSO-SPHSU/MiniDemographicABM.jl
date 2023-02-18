@@ -16,13 +16,16 @@ function population_age_step!(model)
     nothing
 end
 
-"leaving dead people in population"
+"applying death probability to an agent"
 function death_step!(person, model)
+    # Subject to improvement by pre-storing the computation below in a table
+    # age_in_float?
     if !isalive(person) return false end
     ageDieProb  = ismale(person) ?
                         exp(age(person) / model.maleAgeScaling)  * model.maleAgeDieProb :
                         exp(age(person) / model.femaleAgeScaling) * model.femaleAgeDieProb
     rawRate = model.baseDieProb + ageDieProb
+    @assert rawRate < 1
     deathInstProb = instantaneous_probability(rawRate,model.clock)
     if rand() < deathInstProb
         set_dead!(person)
