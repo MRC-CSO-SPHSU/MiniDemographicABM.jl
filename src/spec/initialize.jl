@@ -42,7 +42,7 @@ function init_kinship!(model)
                     _marriage_selection_weight(man,wives[idx])
             end
             woman = sample(wives,weight)
-            set_as_partners!(man,woman)
+            set_partnership!(man,woman)
         end
     end
 
@@ -52,8 +52,8 @@ function init_kinship!(model)
             min(age(father),age(partner(father))) - age(child) > 18 + 9 //12 &&
             age(partner(father)) - age(child) < 45 ]
         father = rand(fathers)
-        set_as_parent!(child,father)
-        set_as_parent!(child,partner(father))
+        set_parentship!(child,father)
+        set_parentship!(child,partner(father))
     end
 
     nothing
