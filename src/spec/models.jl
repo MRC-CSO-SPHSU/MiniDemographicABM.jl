@@ -31,7 +31,12 @@ include("spaces.jl")
     maleAgeScaling::Float64         = 14.0
     femaleAgeDieProb::Float64       = 0.00019
     femaleAgeScaling::Float64       = 15.5
+    # birth parameters
+
 end
+
+# MetaProperties (clock, start_year, currstep, nsteps)
+# data.fertility
 
 #@delegate_onefield(DemographyPars, clock, [num_ticks_year, dt])
 # num_ticks_year(pars::DemographyPars) = num_ticks_year(pars.clock)

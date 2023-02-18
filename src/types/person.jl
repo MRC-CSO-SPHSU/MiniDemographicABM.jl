@@ -16,6 +16,7 @@ mutable struct PersonH{HouseType} <: AbstractAgent
     father::PersonH{HouseType}
     mother::PersonH{HouseType}
     children::Vector{PersonH{HouseType}}
+
     function PersonH{HouseType}(id,pos,gender,age) where HouseType
         person = new{HouseType}(id,pos,gender,age,true)
         if has_invalid_id(person)
@@ -28,8 +29,19 @@ mutable struct PersonH{HouseType} <: AbstractAgent
     end
 end
 
+"Cor relevant for establishing an initial population"
 PersonH{HouseType}(id, pos; age, gender = random_gender()) where HouseType =
     PersonH{HouseType}(id, pos, gender, age)
+
+"Cor for a new child"
+function PersonH{HouseType}(id; mother) where HouseType
+    @assert isfemale(mother) && isadult(mother) && !issingle(mother)  # can give birth
+    person = PersonH{HouseType}(id, home(mother))
+    baby = Person(id,pos=home(woman))
+    set_parentship!(child,woman)
+    set_parentship!(child,partner(woman))
+    return person
+end
 
 ###############
 ## Accessories
@@ -58,8 +70,17 @@ ischild(person) = person.age < 18
 isalive(person) = person.alive
 isdead(person) = !person.alive
 issingle(person) =  partner(person) === noperson(person)
+
 has_children(person) = length(person.children) > 0
 ischildless(person) = !has_children(person)
+
+function has_alive_children(person)
+   for child in children(person)
+       if alive(child) return true end
+   end
+   return false
+end
+
 age2yearsmonths(person) = date2yearsmonths(person.age)
 
 function Base.show(io::IO, person::PersonH)
@@ -85,7 +106,7 @@ function reset_partnership!(person)
     nothing
 end
 
-function set_as_partners!(person1, person2)
+function set_partnership!(person1, person2)
     @assert gender(person1) != gender(person2)
     reset_partnership!(person1)
     reset_partnership!(person2)
@@ -94,8 +115,9 @@ function set_as_partners!(person1, person2)
     nothing
 end
 
-function set_as_parent!(child,parent)
+function set_parentship!(child,parent)
     @assert !(child in children(parent))
+    @assert ischild(child) && isadult(parent)
     if ismale(parent)
         @assert father(child) === noperson(child)
         child.father = parent
@@ -106,9 +128,9 @@ function set_as_parent!(child,parent)
     push!(parent.children,child)
 end
 
-############
-###
-############
+############################################
+### Other functions needed by step functions
+############################################
 
 function set_dead!(person)
     person.alive = false
@@ -118,3 +140,19 @@ function set_dead!(person)
     end
     nothing
 end
+
+function youngest_alive_child(person)
+    for child in Iterators.reverse(children(person))
+        if isalive(child) return child end
+    end
+    return noperson(person)
+end
+
+function age_youngest_alive_child(person)
+    @assert has_alive_children(person)
+    return age(youngest_alive_child(person))
+end
+
+can_give_birth(person) = isfemale(person) && isalive(person) &&    # basics
+    isadult(person) && age(person) < 45 &&                         # age constraints
+    (!has_alive_children(woman) || age_youngest_alive_child(woman) > 1)  #

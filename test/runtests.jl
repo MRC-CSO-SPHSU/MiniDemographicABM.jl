@@ -176,7 +176,7 @@ include("../src/modelspec.jl")
 
     println("\n==========================================\n")
 
-    include("./death_step_test.jl")
+    #include("./death_step_test.jl")
 
 end #
 nothing

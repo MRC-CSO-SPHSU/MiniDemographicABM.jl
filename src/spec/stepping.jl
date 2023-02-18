@@ -36,6 +36,46 @@ end
 
 # Births
 
+##TODO
+# currstep
+# data
+# simulation properties
+function _birth_probability(rWoman,data,currstep)
+    curryear, = date2yearsmonths(currstep)
+    yearsold,  = date2yearsmonths(rWoman)
+    rawRate = data.fertility[yearold-16,curryear-1950]
+    return rawRate
+end # computeBirthProb
+
+function _subject_to_birth(woman, currstep, data)
+    birthProb = _birth_probability(woman, data, currstep)
+    if rand() < instantaneous_probability(birthProb)
+        return true
+    end # if rand()
+    return false
+end
+
+function _birth!(woman, currstep, data)
+    if _subject_to_birth(woman, currstep, data)
+        _givesbirth!(woman) # new baby
+        return true
+    end
+    return false
+end
+
+function population_birth_step!(model)
+    data = data_of(model)
+    people = allagents(model)
+    time = currestep(model)
+    for (ind,woman) in enumerate(Iterators.reverse(people))
+        if ! can_give_birth(woman) continue end
+        if _birth!(woman, time, data, birthpars)
+           @assert people[len-ind+1] === woman
+           add_person!(model,youngest_child(woman)::Person)
+           ret = progress_return!(ret,(ind=len-ind+1,person=woman))
+        end
+    end # for woman
+end
 # Marriages
 
 # Divorces
