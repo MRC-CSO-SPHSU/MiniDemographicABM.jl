@@ -174,10 +174,34 @@ include("src/modelspec.jl")
 
     end
 
+    println("\n==========================================\n")
+
+    pars = DemographyPars{Daily}(initialPop = 10_000)
+    testDeathModel = UKDemographicABM(pars)
+    seed!(testDeathModel,floor(Int,time()))
+    println("Performance with IP = $(testDeathModel.initialPop)")
+    println("declare_population:")
+    @time declare_population!(testDeathModel)
+
+    function age_death_step!(agent,model)
+        age_step!(agent,model)
+        death_step!(agent,model)
+    end
+
+    # Separate testing of death_step
+    # show the plot of dead people age
+    # test if someone reachs 150 years
     @testset "testing stepping functions" begin
-        idx = rand(1:nagents(UKHourlyModel))
-        person = UKHourlyModel[idx]
-        @time death_step!(person,UKHourlyModel)
+        println("evaluating # of alive people:")
+        @time nalive = length([person for person in allagents(testDeathModel) if isalive(person) ])
+        idx = rand(1:nagents(testDeathModel))
+        person = testDeathModel[idx]
+        println("one step death_step!:")
+        @time ret = death_step!(person,UKHourlyModel)
+        @test ret == !isalive(person)
+        println("exectuing one year of death+age steps on a daily basis:")
+        @time run!(testDeathModel,age_death_step!,365)
+        nalivepostoneyear = length([person for person in allagents(testDeathModel) if isalive(person) ])
     end
 
     println("\n==========================================\n")
