@@ -22,7 +22,7 @@ include("spaces.jl")
 #  other model-based functions & types
 #######################################
 
-@mix @with_kw mutable struct DemogPars
+@mix @with_kw struct DemogPars
     # basic fields
     initialPop::Int = 10000
     # Initialization parameters
