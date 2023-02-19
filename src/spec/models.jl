@@ -1,12 +1,16 @@
 """
 common functions applied on Agents.jl-ABM typically defined as:
 
-ABM(Person,space;properties=DemographyPars(initialPop=100))
+ABM(Person,space;properties=DemographicABMProps(initialPop=100))
 
 functions with argument model are expected to be found here.
 """
 
 using Parameters
+using Mixers
+using CSV
+using Tables
+
 include("../util.jl")
 
 import Agents: add_agent_to_space!, remove_agent_from_space!,
@@ -18,10 +22,9 @@ include("spaces.jl")
 #  other model-based functions & types
 #######################################
 
-@with_kw mutable struct DemographyPars{T <: Clock}
+@mix @with_kw mutable struct DemogPars
     # basic fields
-    clock::T = T()
-    initialPop::Int = 100
+    initialPop::Int = 10000
     # Initialization parameters
     startProbMarried::Float64 = 0.8  # Probability of an adult man is being married
     maxNumberOfMarriageCand::Int64 = 100
@@ -31,9 +34,20 @@ include("spaces.jl")
     maleAgeScaling::Float64         = 14.0
     femaleAgeDieProb::Float64       = 0.00019
     femaleAgeScaling::Float64       = 15.5
-    # birth parameters
-
 end
+
+@mix @with_kw struct DemogData
+    fertfile :: String = "./data/babyrate.txt.csv"
+    fertility :: Matrix{Float64} = CSV.File(fertfile, header=0) |> Tables.matrix
+end
+
+@mix @with_kw mutable struct ABMTimer{T <: Clock}
+    clock :: T = T()
+    starttime :: Rational{Int} = 2020 // 1
+    nsteps :: Int = 0
+end
+
+@DemogPars @DemogData @ABMTimer mutable struct DemographicABMProp{T<:Clock} end
 
 # MetaProperties (clock, start_year, currstep, nsteps)
 # data.fertility
@@ -44,8 +58,8 @@ end
 
 
 const DemographicABM = ABM{DemographicMap}
-DemographicABM(space::DemographicMap, parameters::DemographyPars) =
-    ABM(Person, space; properties = parameters)
+DemographicABM(space::DemographicMap, props::DemographicABMProp) =
+    ABM(Person, space; properties = props)
 
 @delegate_onefield(DemographicABM, space,
     [random_town, positions, empty_positions,
@@ -54,6 +68,7 @@ DemographicABM(space::DemographicMap, parameters::DemographyPars) =
         add_empty_house!, add_empty_houses!])
 
 dt(model::DemographicABM) = dt(model.clock)
+currstep(model::DemographicABM) = model.starttime // 1 + nsteps * dt(model.clock)
 
 ##############################
 # extended Agents.jl functions

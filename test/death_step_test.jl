@@ -4,7 +4,7 @@ using Plots
 
 include("../src/modelspec.jl")
 
-pars = DemographyPars{Daily}(initialPop = 10_000)
+pars = DemographicABMProp{Daily}(initialPop = 10_000)
 testDeathModel = UKDemographicABM(pars)
 seed!(testDeathModel,floor(Int,time()))
 println("Performance with IP = $(testDeathModel.initialPop)")

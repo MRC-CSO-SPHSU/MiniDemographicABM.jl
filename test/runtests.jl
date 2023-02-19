@@ -23,12 +23,14 @@ include("../src/modelspec.jl")
     maxTownGridDim = 10
     space = DemographicMap("WaqWaq",maxTownGridDim,towns)
 
-    model = DemographicABM(space,DemographyPars{Monthly}(initialPop=100))
+    model = DemographicABM(space,DemographicABMProp{Monthly}(initialPop=100))
     seed!(model,floor(Int,time()))
     nhouses = 100
     houses = add_empty_houses!(space,nhouses)
 
     @testset verbose=true "exploring Agents.jl functionalities" begin
+        @test size(model.fertility) == (35,360)
+        @test model.start_time == 2020
         @test typeof(model) <: ABM
         @test length(positions(model)) == 100
         @test model.initialPop == 100
@@ -81,7 +83,7 @@ include("../src/modelspec.jl")
 
     end # foo[!](model,*)
 
-    pars = DemographyPars{Monthly}(initialPop = 1000)
+    pars = DemographicABMProp{Monthly}(initialPop = 1000)
     UKMonthlyModel = UKDemographicABM(pars)
     seed!(UKMonthlyModel,floor(Int,time()))
 
@@ -147,7 +149,7 @@ include("../src/modelspec.jl")
         @test ageidx - age(person)== -47*dt(UKMonthlyModel)
     end
 
-    parshours = DemographyPars{Hourly}(initialPop = 10_000)
+    parshours = DemographicABMProp{Hourly}(initialPop = 10_000)
     UKHourlyModel = UKDemographicABM(parshours)
     seed!(UKHourlyModel,floor(Int,time()))
 
