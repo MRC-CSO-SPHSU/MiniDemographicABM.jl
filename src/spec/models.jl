@@ -68,7 +68,8 @@ DemographicABM(space::DemographicMap, props::DemographicABMProp) =
         add_empty_house!, add_empty_houses!])
 
 dt(model::DemographicABM) = dt(model.clock)
-currstep(model::DemographicABM) = model.starttime // 1 + nsteps * dt(model.clock)
+currstep(model::DemographicABM) = model.starttime // 1 + model.nsteps * dt(model.clock)
+metastep!(model::DemographicABM) = model.nsteps += 1
 
 ##############################
 # extended Agents.jl functions

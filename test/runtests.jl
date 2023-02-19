@@ -30,7 +30,7 @@ include("../src/modelspec.jl")
 
     @testset verbose=true "exploring Agents.jl functionalities" begin
         @test size(model.fertility) == (35,360)
-        @test model.start_time == 2020
+        @test model.starttime == 2020
         @test typeof(model) <: ABM
         @test length(positions(model)) == 100
         @test model.initialPop == 100
@@ -139,8 +139,10 @@ include("../src/modelspec.jl")
         @test ageidx - age(person) == -4*dt(UKMonthlyModel)
 
         println("running 40 age_steps")
-        @time run!(UKMonthlyModel,age_step!, 40)
+        @time run!(UKMonthlyModel,age_step!, metastep!, 40)
         @test ageidx - age(person) == -44*dt(UKMonthlyModel)
+        @test UKMonthlyModel.nsteps == 40
+        @test currstep(UKMonthlyModel) == 2020 // 1 + 40 // 12
 
         step!(UKMonthlyModel,dummystep,population_age_step!)
         @test ageidx - age(person) == -45*dt(UKMonthlyModel)
