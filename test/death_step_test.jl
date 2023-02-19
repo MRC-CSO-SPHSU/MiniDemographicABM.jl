@@ -1,15 +1,9 @@
 using Agents
 using Test
-using Plots
 
-include("../src/modelspec.jl")
+include("./helpers.jl")
 
-pars = DemographicABMProp{Daily}(initialPop = 10_000)
-testDeathModel = UKDemographicABM(pars)
-seed!(testDeathModel,floor(Int,time()))
-println("Performance with IP = $(testDeathModel.initialPop)")
-println("declare_population:")
-@time declare_population!(testDeathModel)
+testDeathModel = create_demographic_model(Daily)
 
 function age_death_step!(agent,model)
     age_step!(agent,model)

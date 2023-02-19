@@ -10,8 +10,7 @@ julia> include("runtests.jl")
 
 using Agents
 using Test
-include("../src/modelspec.jl")
-
+include("./helpers.jl")
 
 @testset "MiniDemographicABM Testing" begin
 
@@ -83,9 +82,7 @@ include("../src/modelspec.jl")
 
     end # foo[!](model,*)
 
-    pars = DemographicABMProp{Monthly}(initialPop = 1000)
-    UKMonthlyModel = UKDemographicABM(pars)
-    seed!(UKMonthlyModel,floor(Int,time()))
+    UKMonthlyModel = create_demographic_model(Monthly,1_000, initKinship = true)
 
     @testset verbose=true "exploring component declaration" begin
 
@@ -94,19 +91,12 @@ include("../src/modelspec.jl")
         @test typeof(UKMonthlyModel) <: DemographicABM
         @test typeof(UKMonthlyModel) <: ABM
         @test UKMonthlyModel.initialPop == 1000
-
-        println("\n==========================================\n")
-        println("performance with IP = $(UKMonthlyModel.initialPop)")
-        println("declaring population:")
-        declare_population!(UKMonthlyModel)
         @test nagents(UKMonthlyModel) == UKMonthlyModel.initialPop
 
     end
 
     @testset verbose=true "exploring model initialization" begin
 
-        println("init_kinship!:")
-        @time init_kinship!(UKMonthlyModel)
         adultMen = [ man for man in allagents(UKMonthlyModel) if ismale(man) && isadult(man) ]
         marriedMen = [ man for man in adultMen if !issingle(man) ]
         @test length(marriedMen) / length(adultMen) > (model.startProbMarried - 0.1)
@@ -151,21 +141,9 @@ include("../src/modelspec.jl")
         @test ageidx - age(person)== -47*dt(UKMonthlyModel)
     end
 
-    parshours = DemographicABMProp{Hourly}(initialPop = 10_000)
-    UKHourlyModel = UKDemographicABM(parshours)
-    seed!(UKHourlyModel,floor(Int,time()))
-
-    println("\n==========================================\n")
-    println("Performance with IP = $(UKHourlyModel.initialPop)")
-    println("declare population:")
-    @time declare_population!(UKHourlyModel)
-    println("init_kinship!:")
-    @time init_kinship!(UKHourlyModel)
-    println("init_housing!:")
-    @time init_housing!(UKHourlyModel)
+    UKHourlyModel = create_demographic_model(Hourly,10_000,initKinship=true, initHousing=true)
 
     @testset "exploring hourly-ticking model" begin
-
         idx = rand(1:nagents(UKHourlyModel))
         person = UKHourlyModel[idx]
         ageidx = age(person)
