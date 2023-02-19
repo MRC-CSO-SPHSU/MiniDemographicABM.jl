@@ -49,6 +49,7 @@ function verify_housing_consistency(model)
             if !(person in occupants(home(person)))
                 return false
             end
+            if !(home(person) in houses(hometown(person))) return false end
         end
     end
     return true

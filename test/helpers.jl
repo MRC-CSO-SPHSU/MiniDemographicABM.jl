@@ -1,3 +1,6 @@
+using Agents
+using Test
+
 include("../src/modelspec.jl")
 
 function create_demographic_model(clocktype::Type{T},ips = 10_000;

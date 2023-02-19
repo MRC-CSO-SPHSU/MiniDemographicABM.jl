@@ -8,8 +8,6 @@ julia> push!(LOAD_PATH,"/path/to/MiniDemographicABM.jl")
 julia> include("runtests.jl")
 """
 
-using Agents
-using Test
 include("./helpers.jl")
 
 @testset "MiniDemographicABM Testing" begin
@@ -25,7 +23,7 @@ include("./helpers.jl")
     model = DemographicABM(space,DemographicABMProp{Monthly}(initialPop=100))
     seed!(model,floor(Int,time()))
     nhouses = 100
-    houses = add_empty_houses!(space,nhouses)
+    allhouses = add_empty_houses!(space,nhouses)
 
     @testset verbose=true "exploring Agents.jl functionalities" begin
         @test size(model.fertility) == (35,360)
@@ -34,11 +32,11 @@ include("./helpers.jl")
         @test length(positions(model)) == 100
         @test model.initialPop == 100
 
-        person1 = add_agent_pos!(Person(1,houses[1],random_gender(),20), model)
-        @test home(person1) == houses[1]
+        person1 = add_agent_pos!(Person(1,allhouses[1],random_gender(),20), model)
+        @test home(person1) == allhouses[1]
 
-        add_agent!(Person(nextid(model),UNDEFINED_HOUSE,random_gender(),31), houses[2], model)
-        @test home(model[2]) == houses[2]
+        add_agent!(Person(nextid(model),UNDEFINED_HOUSE,random_gender(),31), allhouses[2], model)
+        @test home(model[2]) == allhouses[2]
 
         add_agent!(model; age = 31)
         @test !ishomeless(model[3])
@@ -46,8 +44,8 @@ include("./helpers.jl")
         add_agent!(model,age=40,gender=female)
         @test nagents(model) == 4
 
-        add_agent!(houses[3],model,age=42)
-        @test home(model[5]) == houses[3]
+        add_agent!(allhouses[3],model,age=42)
+        @test home(model[5]) == allhouses[3]
         @test length(allagents(model)) == 5
 
         kill_agent!(model[1],model)
@@ -114,6 +112,9 @@ include("./helpers.jl")
         @test verify_housing_consistency(UKMonthlyModel)
         @test verify_families_live_together(UKMonthlyModel)
 
+        testHousingWithoutKinshipInit = create_demographic_model(Monthly,1_000,initHousing=true)
+        init_kinship!(testHousingWithoutKinshipInit)
+        @test length(houses(UKMonthlyModel)) < length(houses(testHousingWithoutKinshipInit)) > 0
     end
 
     @testset verbose=true "exploring stepping functions " begin

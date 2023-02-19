@@ -1,6 +1,3 @@
-using Agents
-using Test
-
 include("./helpers.jl")
 
 testDeathModel = create_demographic_model(Daily)
