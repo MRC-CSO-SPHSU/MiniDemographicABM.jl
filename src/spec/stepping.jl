@@ -17,7 +17,7 @@ function population_age_step!(model)
 end
 
 "applying death probability to an agent"
-function death_step!(person, model)
+function death!(person, model)
     # Subject to improvement by pre-storing the computation below in a table
     # age_in_float?
     if !isalive(person) return false end
@@ -36,46 +36,37 @@ end
 
 # Births
 
-##TODO
-# currstep
-# data
-# simulation properties
-function _birth_probability(rWoman,data,currstep)
-    curryear, = date2yearsmonths(currstep)
-    yearsold,  = date2yearsmonths(rWoman)
-    rawRate = data.fertility[yearold-16,curryear-1950]
-    return rawRate
-end # computeBirthProb
-
-function _subject_to_birth(woman, currstep, data)
-    birthProb = _birth_probability(woman, data, currstep)
-    if rand() < instantaneous_probability(birthProb)
-        return true
-    end # if rand()
-    return false
-end
-
-function _birth!(woman, currstep, data)
-    if _subject_to_birth(woman, currstep, data)
-        _givesbirth!(woman) # new baby
+function _birth!(woman, model) # should not be used an agent_step!
+    curryear, = date2yearsmonths(currstep(model))
+    yearsold, = date2yearsmonths(age(woman))
+    birthProb =  model.fertility[yearsold-16,curryear-1950]
+    # @show birthProb
+    # @show instantaneous_probability(birthProb,model.clock)
+    if rand() < instantaneous_probability(birthProb,model.clock)
+        baby = Person(nextid(model);mother=woman)
+        add_agent_pos!(baby,model)
         return true
     end
     return false
 end
 
-function population_birth_step!(model)
-    data = data_of(model)
-    people = allagents(model)
-    time = currestep(model)
-    for (ind,woman) in enumerate(Iterators.reverse(people))
-        if ! can_give_birth(woman) continue end
-        if _birth!(woman, time, data, birthpars)
-           @assert people[len-ind+1] === woman
-           add_person!(model,youngest_child(woman)::Person)
-           ret = progress_return!(ret,(ind=len-ind+1,person=woman))
-        end
-    end # for woman
+function birth!(woman,model) # might be used as an agent_step!
+    if !can_give_birth(woman) return false end
+    return _birth!(woman,model)
 end
+
+function dobirths!(model)
+    people = allagents(model)
+    len = length(people)
+    cnt = 0
+    for rwoman in people
+        if birth!(rwoman, model)
+           cnt += 1
+        end
+    end
+    return cnt
+end
+
 # Marriages
 
 # Divorces
