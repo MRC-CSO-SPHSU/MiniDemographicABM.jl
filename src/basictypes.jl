@@ -31,17 +31,3 @@ noperson(::Type{House}) = NOPERSON
 undefined(town::Town) = town == UNDEFINED_TOWN
 undefined(house::House) = house == UNDEFINED_HOUSE
 ishomeless(person) = undefined(home(person))
-
-function reset_house!(person)
-    if !ishomeless(person)
-        remove_occupant!(home(person),person)
-        person.pos = UNDEFINED_HOUSE
-    end
-    @assert undefined(home(person))
-end
-
-function set_house!(person,house)
-    reset_house!(person)
-    person.pos = house
-    add_occupant!(house,person)
-end

@@ -105,6 +105,12 @@ function reset_partnership!(person)
     nothing
 end
 
+function reset_partnership(person1, person2)
+    @assert person1 === partner(person2)
+    @assert partner(person1) === person2
+    reset_partnership!(person1)
+end
+
 function set_partnership!(person1, person2)
     @assert gender(person1) != gender(person2)
     reset_partnership!(person1)
@@ -126,6 +132,25 @@ function set_parentship!(child,parent)
     end
     push!(parent.children,child)
 end
+
+###################
+### allocation
+###################
+
+function reset_house!(person)
+    if !ishomeless(person)
+        remove_occupant!(home(person),person)
+        person.pos = UNDEFINED_HOUSE
+    end
+    nothing
+end
+
+function set_house!(person,house)
+    reset_house!(person)
+    person.pos = house
+    add_occupant!(house,person)
+end
+
 
 ############################################
 ### Other functions needed by step functions
