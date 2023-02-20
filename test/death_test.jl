@@ -7,7 +7,8 @@ function age_death!(agent,model)
     death!(agent,model)
 end
 
-@testset "testing stepping functions" begin
+@testset "testing death functions" begin
+
     println("evaluating # of alive people:")
     @time nalive = length([person for person in allagents(testDeathModel) if isalive(person) ])
     idx = rand(1:nagents(testDeathModel))
@@ -17,6 +18,8 @@ end
     @test ret == !isalive(person)
     println("exectuing one year of death+age steps on a daily basis:")
     @time run!(testDeathModel,age_death!,365)
+    deads = [dead for dead in allagents(testDeathModel) if isdead(dead)]
+    @test issingle(rand(deads))
     nalive = length([person for person in allagents(testDeathModel) if isalive(person) ])
     println("# of alive people after 1 year :$nalive")
     ndecade = 0

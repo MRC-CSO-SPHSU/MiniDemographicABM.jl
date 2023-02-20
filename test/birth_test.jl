@@ -1,7 +1,5 @@
 include("./helpers.jl")
 
-# combine death and birth
-
 testBirthModel = create_demographic_model(Daily,10_000,initKinship=true, initHousing=true)
 
 function age_birth_step!(agent,model)
@@ -19,7 +17,8 @@ function dobirths_step!(model)
     return dobirths!(model)
 end
 
-@testset "testing birth functions functions" begin
+@testset "testing birth functions" begin
+
     npeople = nagents(testBirthModel)
     rWomen = [woman for woman in allagents(testBirthModel) if can_give_birth(woman)]
     rwoman = rand(rWomen)
@@ -29,7 +28,7 @@ end
         rwoman = rand(rWomen)
         ret = birth!(rwoman, testBirthModel)
     end
-    age_rwoman = age(rwoman)
+    ageRwoman = age(rwoman)
     @test testBirthModel[10001] === youngest_alive_child(rwoman)
 
     println("one model step dobirth:")
@@ -37,7 +36,7 @@ end
 
     println("executing one year of birth + agestep")
     @time run!(testBirthModel,age_birth_step!,metastep!,365)
-    @test age_rwoman + 1 == age(rwoman)
+    @test ageRwoman + 1 == age(rwoman)
     @test currstep(testBirthModel) == 2021
     @test nagents(testBirthModel) > npeople
 
