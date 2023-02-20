@@ -20,11 +20,11 @@ DemographicMap(name,mtgd) = DemographicMap(name,mtgd,Town[])
 
 # could be useful to forward delegate functions with arguments of space.towns
 
-function add_empty_house!(space)
-    town = random_town(space)
+function add_empty_house!(space::DemographicMap,town::Town)
     location = (rand(1:space.maxTownGridDim),rand(1:space.maxTownGridDim))
     return add_empty_house!(town,location)
 end
+add_empty_house!(space) = add_empty_house!(space,random_town(space))
 
 function add_empty_houses!(space,nhouses)
     houses = House[]

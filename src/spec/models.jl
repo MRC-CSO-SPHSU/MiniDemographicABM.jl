@@ -34,6 +34,11 @@ include("spaces.jl")
     maleAgeScaling::Float64         = 14.0
     femaleAgeDieProb::Float64       = 0.00019
     femaleAgeScaling::Float64       = 15.5
+    # divorce parametes
+    basicDivorceRate :: Float64             = 0.06
+    divorceModifierByDecade :: Vector{Float64} =
+        [0.0, 1.0, 0.9, 0.5, 0.4, 0.2, 0.1, 0.03,
+         0.01, 0.001, 0.001, 0.001, 0.0, 0.0, 0.0, 0.0]
 end
 
 @mix @with_kw struct DemogData
@@ -119,3 +124,14 @@ function ids_in_position(house::House,model::DemographicABM)
     notneeded()
 end
 ids_in_position(person::Person,model::DemographicABM) = ids_in_position(person.pos,model)
+
+######################
+# allocation routines
+######################
+
+"move to an empty house in the same town"
+function move_to_emptyhouse!(person,model)
+    town = hometown(person)
+    ehouse = has_empty_house(town) ? empty_house(town) : add_empty_house!(model,town)
+    set_house!(person,ehouse)
+end

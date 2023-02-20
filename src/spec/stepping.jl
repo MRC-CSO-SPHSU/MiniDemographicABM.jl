@@ -50,14 +50,13 @@ function _birth!(woman, model) # should not be used an agent_step!
     return false
 end
 
-function birth!(woman,model) # might be used as an agent_step!
-    if !can_give_birth(woman) return false end
-    return _birth!(woman,model)
+function birth!(person,model) # might be used as an agent_step!
+    if !can_give_birth(person) return false end
+    return _birth!(person,model)
 end
 
 function dobirths!(model)
     people = allagents(model)
-    len = length(people)
     cnt = 0
     for rwoman in people
         if birth!(rwoman, model)
@@ -70,3 +69,39 @@ end
 # Marriages
 
 # Divorces
+
+# do adult children need to move to an empty_house? probably yes!
+
+function _divorce!(man, model)
+    agem = age(man)
+    rawRate = model.basicDivorceRate  * model.divorceModifierByDecade[ceil(Int, agem / 10 )]
+    if rand() < instantaneous_probability(rawRate,model.clock)
+        wife = partner(man)
+        reset_partnership!(man, wife)
+        if has_alive_children(man) && age_youngest_alive_child(man) < 3
+            personToMove = man
+        else
+            personToMove = rand((wife,man))
+        end
+        move_to_emptyhouse!(personToMove, model)
+        # children shall not move
+        return true
+    end
+    return false
+end
+
+function divorce!(person, model)
+    if !isalive(person) || !ismale(person) || issingle(person) return false  end
+    return _divorce!(person,model)
+end
+
+function dodivorces!(model)
+    people = allagents(model)
+    cnt = 0
+    for man in people
+        if divorce!(man, model)
+            cnt += 1
+        end
+    end
+    return cnt
+end

@@ -105,7 +105,7 @@ function reset_partnership!(person)
     nothing
 end
 
-function reset_partnership(person1, person2)
+function reset_partnership!(person1, person2)
     @assert person1 === partner(person2)
     @assert partner(person1) === person2
     reset_partnership!(person1)
