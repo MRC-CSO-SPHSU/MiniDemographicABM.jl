@@ -1,6 +1,6 @@
 include("./helpers.jl")
 
-testDeathModel = create_demographic_model(Daily,10_000,initKinship=true)
+testDeathModel = create_demographic_model(Daily,10_000,initKinship=true,initHousing=true)
 
 function age_death!(agent,model)
     age_step!(agent,model)
@@ -27,6 +27,15 @@ end
         println("# of alive people after $(ndecade) decades :$nalive")
     end
     @test ndecade < 15
+
+    function are_houses_empty(model)
+        hs = houses(model)
+        for house in hs
+            if !isempty(house) return false end
+        end
+        return true
+    end
+    @test are_houses_empty(testDeathModel)
 end
 
 println("\n==========================================\n")
