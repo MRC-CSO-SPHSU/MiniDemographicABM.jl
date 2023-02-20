@@ -35,12 +35,11 @@ PersonH{HouseType}(id, pos; age, gender = random_gender()) where HouseType =
 
 "Cor for a new child"
 function PersonH{HouseType}(id; mother) where HouseType
-    @assert isfemale(mother) && isadult(mother) && !issingle(mother)  # can give birth
-    person = PersonH{HouseType}(id, home(mother))
-    baby = Person(id,pos=home(woman))
-    set_parentship!(child,woman)
-    set_parentship!(child,partner(woman))
-    return person
+    @assert can_give_birth(mother)  # can give birth
+    baby = PersonH{HouseType}(id, home(mother), age = 0//1)
+    set_parentship!(baby,mother)
+    set_parentship!(baby,partner(mother))
+    return baby
 end
 
 ###############
@@ -76,7 +75,7 @@ ischildless(person) = !has_children(person)
 
 function has_alive_children(person)
    for child in children(person)
-       if alive(child) return true end
+       if isalive(child) return true end
    end
    return false
 end
@@ -153,6 +152,7 @@ function age_youngest_alive_child(person)
     return age(youngest_alive_child(person))
 end
 
-can_give_birth(person) = isfemale(person) && isalive(person) &&    # basics
-    isadult(person) && age(person) < 45 &&                         # age constraints
-    (!has_alive_children(woman) || age_youngest_alive_child(woman) > 1)  #
+can_give_birth(person) =
+    isfemale(person) && isalive(person) &&   !issingle(person) &&          # basics
+    isadult(person) && age(person) < 45 &&                                 # age constraints
+    (!has_alive_children(person) || age_youngest_alive_child(person) > 1)  #
