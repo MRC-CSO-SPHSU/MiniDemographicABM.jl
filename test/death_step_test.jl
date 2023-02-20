@@ -1,12 +1,11 @@
 include("./helpers.jl")
 
-testDeathModel = create_demographic_model(Daily)
+testDeathModel = create_demographic_model(Daily,10_000,initKinship=true)
 
 function age_death_step!(agent,model)
     age_step!(agent,model)
     death_step!(agent,model)
 end
-
 
 @testset "testing stepping functions" begin
     println("evaluating # of alive people:")
