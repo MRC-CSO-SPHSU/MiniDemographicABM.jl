@@ -68,12 +68,12 @@ include("./helpers.jl")
         @test !undefined(random_house(model))
         @test isempty(random_empty_house(model))
 
-        nemptyhouses = length(empty_positions(model))
+        nempty_houses = length(empty_positions(model))
         add_empty_house!(model)
-        @test length(empty_houses(model)) == nemptyhouses + 1
+        @test length(empty_houses(model)) == nempty_houses + 1
 
         add_empty_houses!(model,10)
-        @test length(empty_houses(model)) == nemptyhouses + 1 + 10
+        @test length(empty_houses(model)) == nempty_houses + 1 + 10
 
         @test has_empty_positions(model)
         @test !undefined(random_empty(model))

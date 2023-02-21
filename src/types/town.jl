@@ -4,7 +4,7 @@ import Agents: positions, empty_positions, has_empty_positions,
 
 """
  Potentially possible: to maintain the following
-    Two lists emptyhouses and occupiedhouses can be disjointly maintained
+    Two lists empty_houses and occupiedhouses can be disjointly maintained
     population::Vector{PersonType}
  or to completely remove the vector of hosues and associate it to a space type
  In a realistic real-life large-scale model, it seems best to combine both
