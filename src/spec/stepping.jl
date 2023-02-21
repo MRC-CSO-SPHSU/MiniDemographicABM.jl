@@ -7,7 +7,16 @@ Stepping functions for evolving
     or to use agent-specific schudlers as well
 """
 
-age_step!(person,model) = person.age += isalive(person) ? dt(model.clock) : zero(person.age)
+function age_step!(person,model)
+    if !(isalive(person)) return nothing end
+    person.age +=  dt(model.clock)
+    if person.age == 18
+        if oldest_house_occupant(home(person)) !== person
+            move_to_empty_house!(person,model)
+        end
+    end
+    return nothing
+end
 
 function population_age_step!(model)
     for person in allagents(model)
@@ -66,10 +75,7 @@ function dobirths!(model)
     return cnt
 end
 
-# Marriages
-
 # Divorces
-
 # do adult children need to move to an empty_house? probably yes!
 
 function _divorce!(man, model)
@@ -83,7 +89,7 @@ function _divorce!(man, model)
         else
             personToMove = rand((wife,man))
         end
-        move_to_emptyhouse!(personToMove, model)
+        move_to_empty_house!(personToMove, model)
         # children shall not move
         return true
     end
@@ -100,6 +106,75 @@ function dodivorces!(model)
     cnt = 0
     for man in people
         if divorce!(man, model)
+            cnt += 1
+        end
+    end
+    return cnt
+end
+
+# Marriages
+
+_age_class(person) = trunc(Int, age(person)/10)
+
+# how about singles living with parents
+function _join_husbands_family(husband)
+    wife = partner(husband)
+    @assert husband === oldest_house_occupant(home(husband))
+    @assert wife === oldest_house_occupant(home(wife))
+    (decider , follower) =
+        length(occupants(home(husband))) > length(occupants(home(wife))) ?
+            (husband , wife) : (wife , husband)
+    for personToMove in occupants(home(follower))
+        move_to_house!(personToMove,decider)
+        @assert personToMove in occupants(home(decider))
+        @assert home(personToMove) === home(decider)
+    end
+    move_to_house!(follower,decider)
+    @assert home(follower) === home(decider)
+    @assert follower in occupants(home(decider))
+end
+
+function _join_couple!(man, woman)
+    @assert ismale(man) && isfemale(woman) && arepartners(man,woman)
+    _join_husbands_family(man)
+end
+
+_geo_distance_factor(m, w, model) =
+    manhattan_distance(hometown(m), hometown(w)) / (model.space.maxTownGridDim)
+
+function _marry_weight(man, woman, model)::Float64
+    if !issingle(man) || !issingle(woman) return 0.0 end
+    geoFactor = 1/exp(4*_geo_distance_factor(man, woman, model))
+    ageFactor = _marriage_agediff_weight(man,woman)
+    # singles w. children are luckly to marry singles with children
+    numChildrenWithWoman = num_children_living_with(woman)
+    numChildrenWithMan   = num_children_living_with(man)
+    childrenFactor = 1/exp(numChildrenWithWoman) * 1/exp(numChildrenWithMan) *
+        exp(numChildrenWithMan * numChildrenWithWoman)
+    @assert childrenFactor > 0 && geoFactor > 0 && ageFactor > 0
+    return geoFactor * ageFactor * childrenFactor
+end
+
+function domarriages!(model)
+    cnt = 0
+    singleMen = [man for man in allagents(model) if
+        is_eligible_marriage(man) && ismale(man)]
+    singleWomen = [woman for woman in allagents(model) if
+        is_eligible_marriage(woman) && isfemale(woman)]
+    ncandidates = min(model.maxNumberOfMarriageCand,floor(Int,length(singleWomen) / 10))
+    weight = Weights(zeros(ncandidates))
+    for man in singleMen
+        manMarriageProb =
+            model.basicMaleMarriageProb * model.maleMarriageModifierByDecade[_age_class(man)]
+        if rand() < instantaneous_probability(manMarriageProb,model.clock)
+            @assert length(singleWomen) >= ncandidates
+            wives = sample(singleWomen,ncandidates,replace=false)
+            for idx in 1:ncandidates
+                weight[idx] = _marry_weight(man,wives[idx],model)
+            end
+            wife = sample(wives,weight)
+            set_partnership!(man,wife)
+            _join_couple!(man,wife)
             cnt += 1
         end
     end
