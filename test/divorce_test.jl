@@ -65,25 +65,23 @@ end
         isalive(person) && !issingle(person)])
     @test nMarriedNew3 < nMarriedNew2
 
-    #=
-    println("executing one year of dobirth + dodeath agestep")
-    @time run!(testDivorceModel,age_death_step!,dobirths_step!,365)
+    println("executing one year of dobirths / age_death_divorce_step")
+    @time run!(testDivorceModel,age_death_divorce_step!,dobirths_step!,365)
     ndeads = length([person for person in allagents(testDivorceModel) if !isalive(person)] )
     @test ndeads > 0
 
     # no marriages , so the population will certainly vanish
-
     nalive = length([person for person in allagents(testDivorceModel) if isalive(person) ])
     println("# of alive people after 1 year :$nalive")
     ndecades = 0
+    println("10 years of age_death / dobirths executions:")
     while nalive > 0
-        run!(testDivorceModel,age_death_step!,dobirths_step!,365*10)
+        @time run!(testDivorceModel,age_death_divorce_step!,dobirths_step!,365*10)
         nalive = length([person for person in allagents(testDivorceModel) if isalive(person) ])
         ndecades += 1
         println("# of alive people after $(ndecades) decades :$nalive")
     end
     @test ndecades < 15
-    =#
 end
 
 println("\n==========================================\n")
