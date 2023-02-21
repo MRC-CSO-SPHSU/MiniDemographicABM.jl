@@ -1,6 +1,6 @@
 using StatsBase
 import Agents: positions, empty_positions, has_empty_positions,
-    random_position, random_empty
+    random_position, random_empty, manhattan_distance
 
 """
  Potentially possible: to maintain the following
@@ -84,3 +84,5 @@ positions(towns::Towns, ret::HousesType = AllHouses()) = houses(towns,ret)
 has_empty_positions(towns::Towns) = has_empty_house(towns)
 random_position(towns) = random_house(towns)
 random_empty(towns) = rand(empty_positions(towns))
+manhattan_distance(town1,town2) =
+    abs(town1.location[1] - town2.location[1]) + abs(town1.location[2] - town2.location[2])

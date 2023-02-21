@@ -69,6 +69,9 @@ ischild(person) = person.age < 18
 isalive(person) = person.alive
 isdead(person) = !person.alive
 issingle(person) =  partner(person) === noperson(person)
+is_eligible_marriage(person) = isalive(person) && issingle(person) && isadult(person)
+arepartners(person1,person2) =
+    partner(person1) === person2 && partner(person2) === person1
 
 has_children(person) = length(person.children) > 0
 ischildless(person) = !has_children(person)
@@ -80,12 +83,24 @@ function has_alive_children(person)
    return false
 end
 
+function num_children_living_with(person)
+    if !has_alive_children(person) return 0 end
+    cnt = 0
+    for child in children(person)
+        if !isalive(child) continue end
+        if home(child) === home(person)
+            cnt += 1
+        end
+    end
+    return cnt
+end
+
 age2yearsmonths(person) = date2yearsmonths(person.age)
 
 function Base.show(io::IO, person::PersonH)
     print(io,"person $(person.id) " *
             "living in house @ $(home(person).location) " *
-            "@town $(hometown(person).name) " *
+            "@town $(hometown(person).location) " *
             "of age $(age2yearsmonths(person))")
     if !issingle(person)
         println(io,"married to $(partner(person).id)")
@@ -151,6 +166,9 @@ function set_house!(person,house)
     add_occupant!(house,person)
 end
 
+move_to_house!(personToMove::PersonH,person::PersonH) =
+    set_house!(personToMove,home(person))
+move_to_house!(person,house::HouseTP) = set_house!(person,house)
 
 ############################################
 ### Other functions needed by step functions

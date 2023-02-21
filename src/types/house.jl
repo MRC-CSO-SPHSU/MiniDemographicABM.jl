@@ -22,6 +22,18 @@ function add_occupant!(house::HouseTP,person)
     push!(house.occupants,person)
 end
 
+function oldest_house_occupant(house)
+    maxage = -1
+    ret = noperson(typeof(house))
+    for person in occupants(house)
+        if age(person) > maxage
+            ret = person
+            maxage = age(person)
+        end
+    end
+    return ret
+end
+
 function Base.show(io::IO, house::HouseTP)
     println(io,"house @ location $(house.location) @ town $(house.town.name)")
     if isempty(house)
