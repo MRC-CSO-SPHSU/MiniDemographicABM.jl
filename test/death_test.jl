@@ -23,8 +23,9 @@ end
     nalive = length([person for person in allagents(testDeathModel) if isalive(person) ])
     println("# of alive people after 1 year :$nalive")
     ndecade = 0
+    println("10 years of age_death executions:")
     while nalive > 0
-        run!(testDeathModel,age_death!,365*10)
+        @time run!(testDeathModel,age_death!,365*10)
         nalive = length([person for person in allagents(testDeathModel) if isalive(person) ])
         ndecade += 1
         println("# of alive people after $(ndecade) decades :$nalive")
