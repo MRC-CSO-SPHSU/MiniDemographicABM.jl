@@ -79,7 +79,7 @@ end
         @time run!(testDivorceModel,age_death_divorce_step!,dobirths_step!,365*10)
         nalive = length([person for person in allagents(testDivorceModel) if isalive(person) ])
         ndecades += 1
-        println("# of alive people after $(ndecades) decades :$nalive")
+        println("# of alive people after $(ndecades+1) decades :$nalive")
     end
     @test ndecades < 15
 end

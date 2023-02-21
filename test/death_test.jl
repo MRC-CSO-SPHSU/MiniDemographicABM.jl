@@ -22,15 +22,15 @@ end
     @test issingle(rand(deads))
     nalive = length([person for person in allagents(testDeathModel) if isalive(person) ])
     println("# of alive people after 1 year :$nalive")
-    ndecade = 0
+    ndecades = 0
     println("10 years of age_death executions:")
     while nalive > 0
         @time run!(testDeathModel,age_death!,365*10)
         nalive = length([person for person in allagents(testDeathModel) if isalive(person) ])
-        ndecade += 1
-        println("# of alive people after $(ndecade) decades :$nalive")
+        ndecades += 1
+        println("# of alive people after $(ndecades+1) decades :$nalive")
     end
-    @test ndecade < 15
+    @test ndecades < 15
 
     function are_houses_empty(model)
         hs = houses(model)

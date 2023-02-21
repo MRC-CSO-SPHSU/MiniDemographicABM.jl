@@ -59,7 +59,7 @@ end
         @time run!(testBirthModel,age_death_step!,dobirths_step!,365*10)
         nalive = length([person for person in allagents(testBirthModel) if isalive(person) ])
         ndecades += 1
-        println("# of alive people after $(ndecades) decades :$nalive")
+        println("# of alive people after $(ndecades+1) decades :$nalive")
     end
     @test ndecades < 15
 end
