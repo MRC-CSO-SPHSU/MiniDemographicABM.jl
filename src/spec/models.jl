@@ -132,6 +132,6 @@ ids_in_position(person::Person,model::DemographicABM) = ids_in_position(person.p
 "move to an empty house in the same town"
 function move_to_emptyhouse!(person,model)
     town = hometown(person)
-    ehouse = has_empty_house(town) ? empty_house(town) : add_empty_house!(model,town)
+    ehouse = has_empty_house(town) ? rand(empty_houses(town)) : add_empty_house!(model,town)
     set_house!(person,ehouse)
 end
