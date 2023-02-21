@@ -10,7 +10,7 @@ julia> include("runtests.jl")
 
 include("./helpers.jl")
 
-@testset "MiniDemographicABM Testing" begin
+@testset "Basics" begin
 
     towns = [ Town("A", 0.9, (1,1), House[]),
               Town("B", 0.3, (10,5), House[]),
