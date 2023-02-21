@@ -1,12 +1,13 @@
-function _marriage_selection_weight(man,woman)
+function _marriage_agediff_weight(man,woman)
     @assert gender(man) == male && gender(woman) == female
     agediff = age(man) - age(woman)
     ageindex = 1.0
-    if agediff > 5
+    if agediff >= 5
         ageindex = 1.0 / (agediff-5+1)
-    elseif ageindex < -2
-        ageindex = 1.0 / (agediff+2-1)
+    elseif ageindex <= -2
+        ageindex = -1.0 / (agediff+2-1)
     end
+    @assert ageindex > 0
     return ageindex
 end
 
@@ -34,12 +35,11 @@ function init_kinship!(model)
 
     # Establish partners
     for man in adultMen
-        @assert issingle(man)
         if rand() < model.startProbMarried
             wives = sample(adultWomen,ncandidates,replace=false)
             for idx in 1:ncandidates
                 weight[idx] = !issingle(wives[idx]) ? 0.0 :
-                    _marriage_selection_weight(man,wives[idx])
+                    _marriage_agediff_weight(man,wives[idx])
             end
             woman = sample(wives,weight)
             set_partnership!(man,woman)
