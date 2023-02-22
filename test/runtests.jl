@@ -1,13 +1,3 @@
-"""
-Run this script from shell as
-# JULIA_LOAD_PATH="/path/to/MiniDemographicABM.jl/src:\$JULIA_LOAD_PATH" julia RunTests.jl
-
-or within REPL
-
-julia> push!(LOAD_PATH,"/path/to/MiniDemographicABM.jl")
-julia> include("runtests.jl")
-"""
-
 include("./helpers.jl")
 
 @testset "Basics" begin
