@@ -66,7 +66,6 @@ end
 # Further stuffs
 ##############################
 
-empty_positions(towns::Towns) = houses(towns,EmptyHouses())
 random_house(town::TownH) = rand(houses(town))
 function random_house(towns)
     town = random_town(towns)
@@ -81,6 +80,7 @@ random_empty_house(towns::Towns) = rand(empty_positions(towns))
 ##############################
 
 positions(towns::Towns, ret::HousesType = AllHouses()) = houses(towns,ret)
+empty_positions(towns::Towns) = houses(towns,EmptyHouses())
 has_empty_positions(towns::Towns) = has_empty_house(towns)
 random_position(towns) = random_house(towns)
 random_empty(towns) = rand(empty_positions(towns))
