@@ -8,6 +8,10 @@ A simplified Agent-Based demographic model. Individiuals of a population are sub
 ### Aim
 The main purpose is to explore and exploit capabilities of Agents.jl package that shall be integrated / adjusted to a realistic large-scale socio-economic model. 
 
+### Release Notes 
+- **V1.0** (22.02.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM. A space type was implemented as a demonstration.  
+    - V1.0.1 (??.??.??)
+ 
 ### References
 The underlying model is inspired by the model given in the following paper:   
 
