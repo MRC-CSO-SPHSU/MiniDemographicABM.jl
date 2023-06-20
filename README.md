@@ -19,3 +19,4 @@ The underlying model is inspired by the model given in the following paper:
 
 ### Acknowledgements  
 [Dr. Martin Hinsch](https://www.gla.ac.uk/schools/healthwellbeing/staff/martinhinsch/) for Scientific Exchange
+
