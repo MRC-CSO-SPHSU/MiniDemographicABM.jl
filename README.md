@@ -23,3 +23,5 @@ The underlying model is inspired by the model given in the following paper:
 ### Acknowledgements  
 [Dr. Martin Hinsch](https://www.gla.ac.uk/schools/healthwellbeing/staff/martinhinsch/) for Scientific Exchange
 
+### Fundings 
+[Dr. Atyiah Elsheikh](https://www.gla.ac.uk/schools/healthwellbeing/staff/atiyahelsheikh/) is in the Complexity in Health programme.  The work is supported by a programme grant from UKRI Medical Research Council (MRC). The name of the grant is University Unit Strategic Partnership Funding – MRC Core QQ Award.
