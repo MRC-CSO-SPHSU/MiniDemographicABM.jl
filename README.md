@@ -4,7 +4,7 @@
 
 ### Title 
 
-MiniDemographicABM.jl: A simplified agent based model of UK demography for exploring Agents.jl Julia package   
+MiniDemographicABM.jl: A simplified agent based model of UK demography based on the Agents.jl Julia package   
 
 ### Description
 A simplified Agent-Based demographic model. Individiuals of a population are subject to deaths, births, marriages and divorces. 
