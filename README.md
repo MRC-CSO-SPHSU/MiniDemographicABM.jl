@@ -24,11 +24,23 @@ MIT License
 Copyright (c) 2023 Atiyah Elsheikh, MRC/CSO Social & Public Health Sciences Unit, School of Health and Wellbeing, University of Glasgow, Cf. [License](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl/blob/master/LICENSE) for further information
 
 ### Platform 
-
 This code was developed and experimented on 
 - Ubuntu 22.04.2 LTS
 - VSCode V1.71.2
 - Julia language V1.9.1
+
+### Exeution 
+Within Shell:
+
+`$ julia <script-name.jl>`
+
+Within REPL: 
+
+`> include <script-name.jl>`
+
+where script names are 
+- main.jl : for executing the simulation program
+- runalltests.jl: for running unit tests. 
 
 ### References
 The underlying model is inspired by the model given in the following paper:   
