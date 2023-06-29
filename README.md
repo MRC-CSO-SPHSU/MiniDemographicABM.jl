@@ -17,7 +17,7 @@ Atiyah Elsheikh
 Atiyah Elsheikh (V1.0)  
 
 ### Release Notes 
-- **V1.0** (22.02.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM. A space type was implemented as a demonstration.  
+- **V1.0** (22.02.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM. A space type was implemented as a demonstration. A comprehensive set of unit tests is included.  
     - V1.0.1 (??.??.??)
 
 ### License
