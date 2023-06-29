@@ -1,6 +1,10 @@
-# MiniDemographicABM
+# MiniDemographicABM.jl 
 
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
+
+### Title 
+
+MiniDemographicABM.jl: A simplified agent based model of UK demography for exploring Agents.jl Julia package   
 
 ### Author(s)  
 Atiyah Elsheikh 
