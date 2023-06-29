@@ -1,9 +1,7 @@
 # MiniDemographicABM.jl 
-
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 
 ### Title 
-
 MiniDemographicABM.jl: A simplified agent based model of UK demography based on the Agents.jl Julia package   
 
 ### Description
@@ -17,11 +15,10 @@ Atiyah Elsheikh
 Atiyah Elsheikh (V1.0)  
 
 ### Release Notes 
-- **V1.0** (22.02.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM. A space type was implemented as a demonstration. A comprehensive set of unit tests is included.  
+- **V1.0** (22.02.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM. A space type was implemented as a demonstration. A comprehensive set of unit tests is included. Blue style coding convetions are followed. 
     - V1.0.1 (??.??.??)
 
 ### License
-
 MIT License
 
 Copyright (c) 2023 Atiyah Elsheikh, MRC/CSO Social & Public Health Sciences Unit, School of Health and Wellbeing, University of Glasgow, Cf. [License](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl/blob/master/LICENSE) for further information
