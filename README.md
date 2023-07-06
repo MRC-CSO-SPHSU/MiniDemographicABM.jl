@@ -51,6 +51,9 @@ The underlying model is inspired by the model given in the following paper:
 
 [1] Umberto Gostoli and Eric Silverman Social and child care provision in kinship networks: An agent-based model. PLoS ONE 15(12): e0242779 (https://doi.org/10.1371/journal.pone.0242779)
 
+The packages Agents.jl: 
+[2] Datseris G, Vahdati AR, DuBois TC. Agents.jl: a performant and feature-full agent-based modeling software of minimal code complexity. SIMULATION. 2022;0(0). doi:10.1177/00375497211068820
+
 ### Acknowledgements  
 [Dr. Martin Hinsch](https://www.gla.ac.uk/schools/healthwellbeing/staff/martinhinsch/) for Scientific Exchange
 
