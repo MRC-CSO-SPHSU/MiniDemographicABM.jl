@@ -29,6 +29,10 @@ This code was developed and experimented on
 - VSCode V1.71.2
 - Julia language V1.9.1
 
+### URL 
+Check for updates here: 
+- **V1.0** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
+
 ### Exeution 
 Within Shell:
 
