@@ -28,6 +28,7 @@ This code was developed and experimented on
 - Ubuntu 22.04.2 LTS
 - VSCode V1.71.2
 - Julia language V1.9.1
+- Agents.jl V5.14.0
 
 ### URL 
 Check for updates here: 
