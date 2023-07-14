@@ -15,7 +15,7 @@ Atiyah Elsheikh
 Atiyah Elsheikh (V1.0)  
 
 ### Release Notes 
-- **V1.0** (22.02.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM. A space type was implemented as a demonstration. A comprehensive set of unit tests is included. Blue style coding convetions are followed. 
+- **V1.0** (22.02.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM, not yet calibrated. A space type was implemented as a demonstration. A comprehensive set of unit tests is included. Blue style coding convetions are followed. 
     - V1.0.1 (??.??.??)
 
 ### License
@@ -57,6 +57,7 @@ The packages Agents.jl:
 
 ### Acknowledgements  
 [Dr. Martin Hinsch](https://www.gla.ac.uk/schools/healthwellbeing/staff/martinhinsch/) for Scientific Exchange
+[Dr. Eric Silverman](https://www.gla.ac.uk/schools/healthwellbeing/staff/ericsilverman/) Principle Invistigator 
 
 ### Fundings 
 [Dr. Atyiah Elsheikh](https://www.gla.ac.uk/schools/healthwellbeing/staff/atiyahelsheikh/), by the time of publishing Version 1.0 of this software, is a Research Software Engineer at MRC/CSO Social & Public Health Sciences Unit, School of Health and Wellbeing, University of Glasgow. He is in the Complexity in Health programme. He is supported  by the Medical Research Council (MC_UU_00022/1) and the Scottish Government Chief Scientist Office (SPHSU16).
