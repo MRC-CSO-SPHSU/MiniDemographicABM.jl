@@ -5,8 +5,8 @@
 MiniDemographicABM.jl: A simplified agent based model of UK demography based on the Agents.jl Julia package   
 
 ### Description
-A simplified Agent-Based demographic model. Individiuals of a population are subject to deaths, births, marriages and divorces. 
-The main purpose is to explore and exploit capabilities of Agents.jl package that shall be integrated / adjusted to a realistic large-scale socio-economic model. 
+
+This package implements a simplified non-calibrated Agent-based model for the demography of the UK. Individuals of an initial population are subject to ageing, deaths, births, divorces and marriages. A simulation is progressed with a user-defined fixed simulation step size on a hourly,  daily, weakly, monthly basis or an arbitrary user-defined clock rate. The main purpose of the model is to explore and exploit capabilities state-of-the-art  Agents.jl Julia package. Particularly, the model can be integrated / adjusted to a realistic large-scale socio-economics model. This can be also accomplished for other objectives such as pandemics, social interactions etc. mainly within a demographic context.
 
 ### Author(s) 
 Atiyah Elsheikh 
