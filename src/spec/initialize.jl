@@ -35,7 +35,7 @@ function init_kinship!(model)
 
     # Establish partners
     for man in adultMen
-        if rand() < model.startProbMarried
+        if rand() < model.startMarriedRate
             wives = sample(adultWomen,ncandidates,replace=false)
             for idx in 1:ncandidates
                 weight[idx] = !issingle(wives[idx]) ? 0.0 :
