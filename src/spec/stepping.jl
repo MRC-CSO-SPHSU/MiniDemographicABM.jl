@@ -30,10 +30,10 @@ function death!(person, model)
     # Subject to improvement by pre-storing the computation below in a table
     # age_in_float?
     if !isalive(person) return false end
-    ageDieProb  = ismale(person) ?
-                        exp(age(person) / model.maleAgeScaling)  * model.maleAgeDieProb :
-                        exp(age(person) / model.femaleAgeScaling) * model.femaleAgeDieProb
-    rawRate = model.baseDieProb + ageDieProb
+    ageDieRate  = ismale(person) ?
+                        exp(age(person) / model.maleAgeScaling)  * model.maleAgeDieRate :
+                        exp(age(person) / model.femaleAgeScaling) * model.femaleAgeDieRate
+    rawRate = model.baseDieRate + ageDieRate
     @assert rawRate < 1
     deathInstProb = instantaneous_probability(rawRate,model.clock)
     if rand() < deathInstProb
@@ -48,10 +48,10 @@ end
 function _birth!(woman, model) # should not be used an agent_step!
     curryear, = date2yearsmonths(currstep(model))
     yearsold, = date2yearsmonths(age(woman))
-    birthProb =  model.fertility[yearsold-16,curryear-1950]
-    # @show birthProb
-    # @show instantaneous_probability(birthProb,model.clock)
-    if rand() < instantaneous_probability(birthProb,model.clock)
+    birthRate =  model.fertility[yearsold-16,curryear-1950]
+    # @show birthRate
+    # @show instantaneous_probability(birthRate,model.clock)
+    if rand() < instantaneous_probability(birthRate,model.clock)
         baby = Person(nextid(model);mother=woman)
         add_agent_pos!(baby,model)
         return true
@@ -164,9 +164,9 @@ function domarriages!(model)
     ncandidates = min(model.maxNumberOfMarriageCand,floor(Int,length(singleWomen) / 10))
     weight = Weights(zeros(ncandidates))
     for man in singleMen
-        manMarriageProb =
-            model.basicMaleMarriageProb * model.maleMarriageModifierByDecade[_age_class(man)]
-        if rand() < instantaneous_probability(manMarriageProb,model.clock)
+        manMarriageRate =
+            model.basicMaleMarriageRate * model.maleMarriageModifierByDecade[_age_class(man)]
+        if rand() < instantaneous_probability(manMarriageRate,model.clock)
             @assert length(singleWomen) >= ncandidates
             wives = sample(singleWomen,ncandidates,replace=false)
             for idx in 1:ncandidates

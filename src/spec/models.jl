@@ -26,13 +26,13 @@ include("spaces.jl")
     # basic fields
     initialPop::Int = 10000
     # Initialization parameters
-    startProbMarried::Float64 = 0.8  # Probability of an adult man is being married
+    startMarriedRate::Float64 = 0.8  # Probability of an adult man is being married
     maxNumberOfMarriageCand::Int64 = 100
     # death parameters / yearly comulative (adhoc no model identification conducted)
-    baseDieProb::Float64            = 0.0001
-    maleAgeDieProb::Float64         = 0.00021
+    baseDieRate::Float64            = 0.0001
+    maleAgeDieRate::Float64         = 0.00021
     maleAgeScaling::Float64         = 14.0
-    femaleAgeDieProb::Float64       = 0.00019
+    femaleAgeDieRate::Float64       = 0.00019
     femaleAgeScaling::Float64       = 15.5
     # divorce parametes
     basicDivorceRate :: Float64       = 0.06
@@ -40,7 +40,7 @@ include("spaces.jl")
         [0.0, 1.0, 0.9, 0.5, 0.4, 0.2, 0.1, 0.03,
          0.01, 0.001, 0.001, 0.001, 0.0, 0.0, 0.0, 0.0]
     # marriage parameters
-    basicMaleMarriageProb :: Float64  = 0.7
+    basicMaleMarriageRate :: Float64  = 0.7
     maleMarriageModifierByDecade :: Vector{Float64} =
         [ 0.0, 0.16, 0.5, 1.0, 0.8, 0.7, 0.66, 0.5,
           0.4, 0.2, 0.1, 0.05, 0.01, 0.0, 0.0, 0.0 ]

@@ -87,7 +87,7 @@ include("./helpers.jl")
 
         adultMen = [ man for man in allagents(UKMonthlyModel) if ismale(man) && isadult(man) ]
         marriedMen = [ man for man in adultMen if !issingle(man) ]
-        @test length(marriedMen) / length(adultMen) > (model.startProbMarried - 0.1)
+        @test length(marriedMen) / length(adultMen) > (model.startMarriedRate - 0.1)
 
         @test verify_children_parents(UKMonthlyModel)
         @test verify_parentless_adults(UKMonthlyModel)

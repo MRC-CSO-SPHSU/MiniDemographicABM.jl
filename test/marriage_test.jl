@@ -57,7 +57,7 @@ end
         @time run!(testMarriageModel,age_death_divorce_step!,dobirths_domarriages_step!,365*10)
         nalive = length([person for person in allagents(testMarriageModel) if isalive(person) ])
         ndeads = length([person for person in allagents(testMarriageModel) if !isalive(person) ])
-        println("# of alive people after 1 year :$nalive, deadpeople after $(ndecades+1) decades : $ndeads")
+        println("# of alive people :$nalive, deadpeople : $ndeads after $(ndecades+1) decades")
         oldestDeadAge =
             maximum([age(person) for person in allagents(testMarriageModel) if !isalive(person)])
         @show date2yearsmonths(oldestDeadAge)[1]

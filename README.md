@@ -6,7 +6,7 @@ MiniDemographicABM.jl: A simplified agent based model of UK demography based on 
 
 ### Description
 
-This package implements a simplified non-calibrated Agent-based model for the demography of the UK. Individuals of an initial population are subject to ageing, deaths, births, divorces and marriages. A simulation is progressed with a user-defined fixed simulation step size on a hourly,  daily, weakly, monthly basis or an arbitrary user-defined clock rate. The main purpose of the model is to explore and exploit capabilities state-of-the-art  Agents.jl Julia package. Particularly, the model can be integrated / adjusted to a realistic large-scale socio-economics model. This can be also accomplished for other objectives such as pandemics, social interactions etc. mainly within a demographic context.
+This package implements of a simplified non-calibrated agent-based demographic model of the UK. Individuals of an initial population are subject to ageing, deaths, births, divorces and marriages. The main purpose of the model is to explore and exploit capabilities of the state-of-the-art Agents.jl Julia package. Additionally, the model can serve as a base model to be adjusted to realistic large-scale socio-economics, pandemics or social interactions-based studies mainly within a demographic context. A specific case-study simulation is progressed with a user-defined simulation fixed step size on a hourly, daily, weakly, monthly basis or even an arbitrary user-defined clock rate.  
 
 ### Author(s) 
 Atiyah Elsheikh 
@@ -50,11 +50,11 @@ where script names are
 ### References
 The underlying model is inspired by the model given in the following paper:   
 
-[1] Umberto Gostoli and Eric Silverman Social and child care provision in kinship networks: An agent-based model. PLoS ONE 15(12): e0242779 (https://doi.org/10.1371/journal.pone.0242779)
+[1] Umberto Gostoli and Eric Silverman Social and child care provision in kinship networks: An agent-based model. PLoS ONE 15(12): 2020 (https://doi.org/10.1371/journal.pone.0242779)
 
 The packages Agents.jl: 
 
-[2] Datseris G, Vahdati AR, DuBois TC. Agents.jl: a performant and feature-full agent-based modeling software of minimal code complexity. SIMULATION. 2022;0(0). doi:10.1177/00375497211068820
+[2] George Datseris, Ali R. Vahdati, Timothy C. DuBois: Agents.jl: a performant and feature-full agent-based modeling software of minimal code complexity. SIMULATION. 2022. doi:10.1177/00375497211068820
 
 ### Acknowledgements  
 - [Dr. Martin Hinsch](https://www.gla.ac.uk/schools/healthwellbeing/staff/martinhinsch/) for Scientific Exchange
