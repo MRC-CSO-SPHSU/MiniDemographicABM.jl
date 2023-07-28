@@ -16,7 +16,8 @@ Atiyah Elsheikh (V1.0)
 
 ### Release Notes 
 - **V1.0** (22.2.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM, not yet calibrated. A space type was implemented as a demonstration. A comprehensive set of unit tests is included. Blue style coding convetions are followed. 
-    - V1.0.1 (14.7.23) : updating ReadMe with usually demanded information 
+    - V1.0.1 (14.7.23) : updating ReadMe with usually demanded information
+- ** V1.1** (28.7.23): - Model documentation as a pdf and unified naming convention of model parameters
 
 ### License
 MIT License
