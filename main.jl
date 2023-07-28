@@ -16,7 +16,7 @@ include("./src/modelspec.jl")
 properties can be accessed in models.jl
 Other clock options: Monthly, Hourly
 =#
-const properties = DemographicABMProp{Daily}(initialPop = 1_000)
+const properties = DemographicABMProp{Daily}(initialPop = 10_000)
 const model = UKDemographicABM(properties)
 
 seed!(model,floor(Int,time()))  # really random
