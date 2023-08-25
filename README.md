@@ -1,3 +1,5 @@
+[![Open Code Badge](https://www.comses.net/static/images/icons/open-code-badge.png)](https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.1.0/)
+
 # MiniDemographicABM.jl 
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 
