@@ -65,5 +65,23 @@ The packages Agents.jl:
 
 For the purpose of open access, the author(s) has applied a Creative Commons Attribution (CC BY) licence to any Author Accepted Manuscript version arising from this submission.
 
+### Cite as 
+
+### Cite as 
+
+Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic model of the UK. CoMSES Computational Model Library, July 2023. V1.1.0
+
+#### bibtex
+@Software{MiniDemographicABMjl,
+  author  = {Atiyah Elsheikh},
+  comment = {CoMSES Computational Model Library},
+  date    = {2023-07-28},
+  month   = jul,
+  title   = {{MiniDemographicABM.jl}: {A} simplified agent-based demographic model of the {UK}},
+  url     = {https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.1.0/},
+  version = {1.1.0},
+  year    = {2023},
+}
+
 ### Fundings 
 [Dr. Atyiah Elsheikh](https://www.gla.ac.uk/schools/healthwellbeing/staff/atiyahelsheikh/), by the time of publishing Version 1.0 of this software, is a Research Software Engineer at MRC/CSO Social & Public Health Sciences Unit, School of Health and Wellbeing, University of Glasgow. He is in the Complexity in Health programme. He is supported  by the Medical Research Council (MC_UU_00022/1) and the Scottish Government Chief Scientist Office (SPHSU16). 
