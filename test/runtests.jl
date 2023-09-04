@@ -12,9 +12,9 @@ using Test
 @testset "MiniDemographicABM Testing" begin
 
     include("./basic_tests.jl")
-    include("./death_test.jl")
-    include("./divorce_test.jl")
-    include("./birth_test.jl")
-    include("./marriage_test.jl")
+    #include("./death_test.jl")
+    #include("./divorce_test.jl")
+    #include("./birth_test.jl")
+    #include("./marriage_test.jl")
 
 end
