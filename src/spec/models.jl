@@ -47,7 +47,7 @@ include("spaces.jl")
 end
 
 @mix @with_kw struct DemogData
-    fertfile :: String = "./data/babyrate.txt.csv"
+    fertfile :: String = "../data/babyrate.txt.csv"
     fertility :: Matrix{Float64} = CSV.File(fertfile, header=0) |> Tables.matrix
 end
 
