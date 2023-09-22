@@ -13,8 +13,9 @@ using Tables
 
 include("../util.jl")
 
-import Agents: add_agent_to_space!, remove_agent_from_space!,
-    ids_in_position, add_agent!, move_agent!
+import Agents: remove_agent_from_space!,
+    ids_in_position, add_agent!, move_agent!, add_agent_to_space!
+#import ABMSim: add_agent_to_space!
 
 include("spaces.jl")
 
@@ -90,7 +91,7 @@ metastep!(model::DemographicABM) = model.nsteps += 1
 #
 # The following is needed by add_agent!(agent,model)
 #
-function add_agent_to_space!(person, model::DemographicABM)
+function add_agent_to_space!(person, model)
     # @assert !ishomeless(person)
     @assert ishomeless(person) || hometown(person) in model.space.towns
     @assert home(person) in hometown(person).houses
