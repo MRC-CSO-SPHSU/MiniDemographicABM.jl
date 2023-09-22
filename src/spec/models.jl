@@ -15,7 +15,6 @@ include("../util.jl")
 
 import Agents: remove_agent_from_space!,
     ids_in_position, add_agent!, move_agent!, add_agent_to_space!
-#import ABMSim: add_agent_to_space!
 
 include("spaces.jl")
 
@@ -73,6 +72,7 @@ end
 const DemographicABM = ABM{DemographicMap}
 DemographicABM(space::DemographicMap, props::DemographicABMProp) =
     ABM(Person, space; properties = props)
+parameters(model::DemographicABM) = model
 
 @delegate_onefield(DemographicABM, space,
     [random_town, positions, empty_positions,
