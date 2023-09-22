@@ -45,11 +45,13 @@ include("spaces.jl")
         [ 0.0, 0.16, 0.5, 1.0, 0.8, 0.7, 0.66, 0.5,
           0.4, 0.2, 0.1, 0.05, 0.01, 0.0, 0.0, 0.0 ]
 end
+@DemogPars struct DemographyPars end
 
 @mix @with_kw struct DemogData
     fertfile :: String = "../data/babyrate.txt.csv"
     fertility :: Matrix{Float64} = CSV.File(fertfile, header=0) |> Tables.matrix
 end
+@DemogData struct DemographyData end
 
 @mix @with_kw mutable struct ABMTimer{T <: Clock}
     clock :: T = T()
