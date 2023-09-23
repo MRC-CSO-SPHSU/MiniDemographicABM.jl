@@ -61,9 +61,6 @@ end
 
 @DemogPars @DemogData @ABMTimer mutable struct DemographicABMProp{T<:Clock} end
 
-# MetaProperties (clock, start_year, currstep, nsteps)
-# data.fertility
-
 #@delegate_onefield(DemographyPars, clock, [num_ticks_year, dt])
 # num_ticks_year(pars::DemographyPars) = num_ticks_year(pars.clock)
 # dt(pars::DemographyPars) = dt(pars.clock)
@@ -79,6 +76,7 @@ parameters(model::DemographicABM) = model
         empty_houses, houses,
         random_house, random_empty_house, has_empty_positions, random_position, random_empty,
         add_empty_house!, add_empty_houses!])
+
 
 dt(model::DemographicABM) = dt(model.clock)
 currstep(model::DemographicABM) = model.starttime // 1 + model.nsteps * dt(model.clock)
@@ -117,7 +115,7 @@ add_agent!(house::House,model::DemographicABM;age,gender=random_gender()) =
     add_agent!(house,Person,model;age=age,gender=gender)
 
 # needed by move_agent!(person,model)
-function move_agent!(person,house,model::DemographicABM)
+function move_agent!(person,house,model)
     reset_house!(person)
     set_house!(person,house)
 end
