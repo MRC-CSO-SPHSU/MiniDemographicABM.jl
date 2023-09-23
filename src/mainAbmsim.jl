@@ -13,10 +13,10 @@ include("util.jl")
 add_to_loadpath!(pwd() * "/../../ABMSim.jl")
 
 using ABMSim: ABMSIMVERSION, init_abmsim
-using ABMSim: ABMSimulator, ABMPDVS
+using ABMSim: ABMSimulator
 using ABMSim: attach_agent_step!, step!
 
-include("./modelspec.jl")
+include("./abmsimspec.jl")
 
 @assert ABMSIMVERSION == v"0.6.1"
 init_abmsim()  # reset agents id counter
@@ -31,15 +31,15 @@ const pars = DemographyPars(initialPop = 10000)
 const data = DemographyData()
 const ukmap = declare_UK_map()
 #const model = SimpleABMS{Person,DemographicMap}(ukmap)
-const model = ABMPDVS{Person,DemographyPars,DemographyData,Nothing,DemographicMap}(
-    pars,data,ukmap)
-parameters(model) = model.parameters
+const model = DemographicABMSim(pars,data,ukmap)
+
 
 # declaration of model components
 declare_population!(model,simulator)
 
 # Initialzation of model
 init_kinship!(model)
+init_housing!(model)
 
 # Step functions
 
