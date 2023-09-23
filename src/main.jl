@@ -10,7 +10,7 @@ julia> include("script-name.jl")
 using Agents
 using Plots
 
-include("./modelspec.jl")
+include("./simspec.jl")
 
 #=
 properties can be accessed in models.jl
