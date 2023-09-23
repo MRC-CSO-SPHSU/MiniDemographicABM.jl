@@ -41,7 +41,6 @@ end
 
 UKDemographicABM(pars) = DemographicABM(declare_UK_map(),pars)
 
-
 function _declare_population!(model,numTicksYear,initialPop)
     @assert nagents(model) == 0
     dist = Normal(0,0.25*100*numTicksYear)
@@ -71,18 +70,3 @@ _num_ticks_year(sim) = sim.parameters.dt == 1 // 1 ? 365 : notimplemented()
 
 declare_population!(model,simulator) =
     _declare_population!(model,_num_ticks_year(simulator),10000)
-
-#=function declare_population!(model)
-    @assert nagents(model) == 0
-    dist = Normal(0,0.25*100*num_ticks_year(model.clock))
-    agedist = floor.(Int,abs.(rand(dist,model.initialPop)))
-
-    # Create population with agedist
-    for a in agedist
-        person = Person(nextid(model),UNDEFINED_HOUSE,random_gender(),
-                        a // num_ticks_year(model.clock))
-        add_agent_pos!(person,model)
-    end
-
-    return allagents(model)
-end=#
