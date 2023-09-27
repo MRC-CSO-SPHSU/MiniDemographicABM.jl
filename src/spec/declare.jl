@@ -66,7 +66,7 @@ Simplified model for an initial population
 declare_population!(model) =
     _declare_population!(model,num_ticks_year(model.clock),model.initialPop)
 
-_num_ticks_year(sim) = sim.parameters.dt == 1 // 1 ? 365 : notimplemented()
+_num_ticks_year(sim) = sim.parameters.dt == 1 // 365 ? 365 : notimplemented()
 
 declare_population!(model,simulator) =
     _declare_population!(model,_num_ticks_year(simulator),10000)
