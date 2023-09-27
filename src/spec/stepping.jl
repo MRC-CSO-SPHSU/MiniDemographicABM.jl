@@ -19,7 +19,7 @@ function _age_step!(person, model, inc)
 end
 _dt(sim) = sim.parameters.dt
 age_step!(person, model) = _age_step!(person, model, dt(model.clock))
-age_step!(person, model, sim) = _age_step!(person, model,_dt(sim))
+age_step!(person, model, sim) = _age_step!(person, model, _dt(sim))
 
 function population_age_step!(model)
     for person in allagents(model)
@@ -49,13 +49,12 @@ death!(person, model, sim) = _death!(person, model.parameters, _num_ticks_year(s
 
 # Births
 
-function _birth!(woman, model) # should not be used an agent_step!
-    curryear, = date2yearsmonths(currstep(model))
+function _birth!(woman, model, data, numTicksYear, t)
+    if !can_give_birth(woman) return false end
+    curryear, = date2yearsmonths(t)
     yearsold, = date2yearsmonths(age(woman))
-    birthRate =  model.fertility[yearsold-16,curryear-1950]
-    # @show birthRate
-    # @show instantaneous_probability(birthRate,model.clock)
-    if rand() < instantaneous_probability(birthRate,model.clock)
+    birthRate =  data.fertility[yearsold-16,curryear-1950]
+    if rand() < instantaneous_probability(birthRate,numTicksYear)
         baby = Person(nextid(model);mother=woman)
         add_agent_pos!(baby,model)
         return true
@@ -63,16 +62,29 @@ function _birth!(woman, model) # should not be used an agent_step!
     return false
 end
 
-function birth!(person,model) # might be used as an agent_step!
-    if !can_give_birth(person) return false end
-    return _birth!(person,model)
-end
+_currstep(sim) = sim.stepnumber * sim.parameters.dt + sim.parameters.starttime
+
+birth!(person,model) =
+    _birth!(person, model, model, num_ticks_year(model.clock), currstep(model))
+birth!(person, model, sim) =
+    _birth!(person, model, model.data, _num_ticks_year(sim), _currstep(sim))
 
 function dobirths!(model)
     people = allagents(model)
     cnt = 0
     for rwoman in people
         if birth!(rwoman, model)
+           cnt += 1
+        end
+    end
+    return cnt
+end
+
+function dobirths!(model, sim)
+    people = allagents(model)
+    cnt = 0
+    for rwoman in people
+        if birth!(rwoman, model, sim)
            cnt += 1
         end
     end
