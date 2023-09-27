@@ -7,9 +7,9 @@ Stepping functions for evolving
     or to use agent-specific schudlers as well
 """
 
-function age_step!(person,model)
+function _age_step!(person, model, inc)
     if !(isalive(person)) return nothing end
-    person.age +=  dt(model.clock)
+    person.age += inc
     if person.age == 18
         if oldest_house_occupant(home(person)) !== person
             move_to_empty_house!(person,model)
@@ -17,6 +17,8 @@ function age_step!(person,model)
     end
     return nothing
 end
+age_step!(person, model) = _age_step!(person, model, dt(model.clock))
+age_step!(person, model, sim) = _age_step!(person, model, sim.parameters.dt)
 
 function population_age_step!(model)
     for person in allagents(model)
