@@ -172,18 +172,19 @@ function _marry_weight(man, woman, model)::Float64
     return geoFactor * ageFactor * childrenFactor
 end
 
-function domarriages!(model)
+
+function _domarriages!(model,pars,data,numTicksYear)
     cnt = 0
     singleMen = [man for man in allagents(model) if
         is_eligible_marriage(man) && ismale(man)]
     singleWomen = [woman for woman in allagents(model) if
         is_eligible_marriage(woman) && isfemale(woman)]
-    ncandidates = min(model.maxNumberOfMarriageCand,floor(Int,length(singleWomen) / 10))
+    ncandidates = min(pars.maxNumberOfMarriageCand,floor(Int,length(singleWomen) / 10))
     weight = Weights(zeros(ncandidates))
     for man in singleMen
         manMarriageRate =
-            model.basicMaleMarriageRate * model.maleMarriageModifierByDecade[_age_class(man)]
-        if rand() < instantaneous_probability(manMarriageRate,model.clock)
+            pars.basicMaleMarriageRate * data.maleMarriageModifierByDecade[_age_class(man)]
+        if rand() < instantaneous_probability(manMarriageRate, numTicksYear)
             @assert length(singleWomen) >= ncandidates
             wives = sample(singleWomen,ncandidates,replace=false)
             for idx in 1:ncandidates
@@ -197,3 +198,7 @@ function domarriages!(model)
     end
     return cnt
 end
+
+domarriages!(model) = _domarriages!(model, model, model, num_ticks_year(model.clock))
+domarriages!(model, sim) =
+    _domarriages!(model, model.parameters, model.data, _num_ticks_year(sim))
