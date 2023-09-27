@@ -69,4 +69,4 @@ declare_population!(model) =
 _num_ticks_year(sim) = sim.parameters.dt == 1 // 365 ? 365 : notimplemented()
 
 declare_population!(model,simulator) =
-    _declare_population!(model,_num_ticks_year(simulator),10000)
+    _declare_population!(model,_num_ticks_year(simulator),model.parameters.initialPop)
