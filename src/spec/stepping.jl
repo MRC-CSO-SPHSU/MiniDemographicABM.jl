@@ -17,8 +17,9 @@ function _age_step!(person, model, inc)
     end
     return nothing
 end
+_dt(sim) = sim.parameters.dt
 age_step!(person, model) = _age_step!(person, model, dt(model.clock))
-age_step!(person, model, sim) = _age_step!(person, model, sim.parameters.dt)
+age_step!(person, model, sim) = _age_step!(person, model,_dt(sim))
 
 function population_age_step!(model)
     for person in allagents(model)
@@ -27,23 +28,24 @@ function population_age_step!(model)
     nothing
 end
 
-"applying death probability to an agent"
-function death!(person, model)
-    # Subject to improvement by pre-storing the computation below in a table
-    # age_in_float?
+function _death!(person, pars, numTicksYear)
     if !isalive(person) return false end
     ageDieRate  = ismale(person) ?
-                        exp(age(person) / model.maleAgeScaling)  * model.maleAgeDieRate :
-                        exp(age(person) / model.femaleAgeScaling) * model.femaleAgeDieRate
-    rawRate = model.baseDieRate + ageDieRate
+                        exp(age(person) / pars.maleAgeScaling)  * pars.maleAgeDieRate :
+                        exp(age(person) / pars.femaleAgeScaling) * pars.femaleAgeDieRate
+    rawRate = pars.baseDieRate + ageDieRate
     @assert rawRate < 1
-    deathInstProb = instantaneous_probability(rawRate,model.clock)
+    deathInstProb = instantaneous_probability(rawRate,numTicksYear)
     if rand() < deathInstProb
         set_dead!(person)
         return true
     end
     return false
 end
+
+"applying death probability to an agent"
+death!(person, model) = _death!(person,model,num_ticks_year(model.clock))
+death!(person, model, sim) = _death!(person, model.parameters, _num_ticks_year(sim))
 
 # Births
 
