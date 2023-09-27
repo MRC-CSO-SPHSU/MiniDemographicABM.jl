@@ -19,7 +19,8 @@ Atiyah Elsheikh (V1.0)
 ### Release Notes 
 - **V1.0** (22.2.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM, not yet calibrated. A space type was implemented as a demonstration. A comprehensive set of unit tests is included. Blue style coding convetions are followed. 
     - V1.0.1 (14.7.23) : updating ReadMe with usually demanded information
-- **V1.1** (28.7.23): - Model documentation as a pdf and unified naming convention of model parameters
+- **V1.1** (28.7.23): Model documentation as a pdf and unified naming convention of model parameters
+- **V1.2** (27-9-23): Equativalent simulation program based on ABMSim Version 0.7 
 
 ### License
 MIT License
@@ -32,6 +33,7 @@ This code was developed and experimented on
 - VSCode V1.71.2
 - Julia language V1.9.1
 - Agents.jl V5.14.0
+- [ABMSim.jl](https://github.com/MRC-CSO-SPHSU/ABMSim.jl) V0.7 (Optional) 
 
 ### URL 
 Check for updates here: 
