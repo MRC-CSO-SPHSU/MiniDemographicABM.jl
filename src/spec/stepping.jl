@@ -82,10 +82,11 @@ end
 # Divorces
 # do adult children need to move to an empty_house? probably yes!
 
-function _divorce!(man, model)
+function _divorce!(man, model, pars, data, numTicksYear)
+    if !isalive(man) || !ismale(man) || issingle(man) return false  end
     agem = age(man)
-    rawRate = model.basicDivorceRate  * model.divorceModifierByDecade[ceil(Int, agem / 10 )]
-    if rand() < instantaneous_probability(rawRate,model.clock)
+    rawRate = pars.basicDivorceRate  * data.divorceModifierByDecade[ceil(Int, agem / 10 )]
+    if rand() < instantaneous_probability(rawRate,numTicksYear)
         wife = partner(man)
         reset_partnership!(man, wife)
         if has_alive_children(man) && age_youngest_alive_child(man) < 3
@@ -100,10 +101,10 @@ function _divorce!(man, model)
     return false
 end
 
-function divorce!(person, model)
-    if !isalive(person) || !ismale(person) || issingle(person) return false  end
-    return _divorce!(person,model)
-end
+divorce!(person, model) =
+    _divorce!(person, model, model, model, num_ticks_year(model.clock))
+divorce!(person, model, sim) =
+    _divorce!(person, model, model.parameters, model.data, _num_ticks_year(sim))
 
 function dodivorces!(model)
     people = allagents(model)
