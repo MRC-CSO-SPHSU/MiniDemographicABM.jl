@@ -36,20 +36,20 @@ include("spaces.jl")
     femaleAgeScaling::Float64       = 15.5
     # divorce parametes
     basicDivorceRate :: Float64       = 0.06
-    divorceModifierByDecade :: Vector{Float64} =
-        [0.0, 1.0, 0.9, 0.5, 0.4, 0.2, 0.1, 0.03,
-         0.01, 0.001, 0.001, 0.001, 0.0, 0.0, 0.0, 0.0]
     # marriage parameters
     basicMaleMarriageRate :: Float64  = 0.7
-    maleMarriageModifierByDecade :: Vector{Float64} =
-        [ 0.0, 0.16, 0.5, 1.0, 0.8, 0.7, 0.66, 0.5,
-          0.4, 0.2, 0.1, 0.05, 0.01, 0.0, 0.0, 0.0 ]
 end
 @DemogPars struct DemographyPars end
 
 @mix @with_kw struct DemogData
     fertfile :: String = "../data/babyrate.txt.csv"
     fertility :: Matrix{Float64} = CSV.File(fertfile, header=0) |> Tables.matrix
+    divorceModifierByDecade :: Vector{Float64} =
+        [ 0.0, 1.0, 0.9, 0.5, 0.4, 0.2, 0.1, 0.03,
+          0.01, 0.001, 0.001, 0.001, 0.0, 0.0, 0.0, 0.0 ]
+    maleMarriageModifierByDecade :: Vector{Float64} =
+        [ 0.0, 0.16, 0.5, 1.0, 0.8, 0.7, 0.66, 0.5,
+          0.4, 0.2, 0.1, 0.05, 0.01, 0.0, 0.0, 0.0 ]
 end
 @DemogData struct DemographyData end
 
