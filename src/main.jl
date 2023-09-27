@@ -10,7 +10,7 @@ julia> include("script-name.jl")
 using Agents
 using Plots
 
-include("./modelspec.jl")
+include("./simspec.jl")
 
 #=
 properties can be accessed in models.jl
@@ -73,11 +73,24 @@ mdata = [num_deads, ratio_males, mean_living_age, ratio_singles, ratio_children,
 
 #=
 to check perfomrance without data collection, execute:
-@time run!(model,agent_steps!,model_steps!,365*10)
+=#
+# @time run!(model,agent_steps!,model_steps!,365*10)
+
+#=
+Some stats
+deadpeople = [ p for p in allagents(model) if !isalive(p) ]
+@show length(deadpeople)
+
+singleParents = [ p for p in allagents(model) if issingle(p) && has_children(p) ] ;
+@show length(singleParents)
+
+marriedParents = [ p for p in allagents(model) if !issingle(p) && has_children(p) ] ;
+@show length(marriedParents)
 =#
 
+
 @time agent_df, model_df =
-    run!(model,agent_steps!,model_steps!,365*10;adata, mdata)
+    run!(model,agent_steps!,model_steps!,365*10; adata, mdata)
 
 #=
 plot as follows from REPL

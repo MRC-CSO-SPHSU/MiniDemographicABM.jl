@@ -21,7 +21,9 @@ num_ticks_year(::Daily) = 365 # or 12 * 30.5
 num_ticks_year(::Hourly) = 365 * 24
 dt(clock::Clock) = 1 // num_ticks_year(clock)
 stepsize(clock) = dt(clock)
-instantaneous_probability(rate,clock) = -log(1-rate) / num_ticks_year(clock)
+instantaneous_probability(rate,nty::Int) = -log(1-rate) / nty
+instantaneous_probability(rate,clock) =
+    instantaneous_probability(rate,num_ticks_year(clock))
 
 "convert date in rational representation to (years, months) as tuple"
 function date2yearsmonths(date::Rational{Int})
