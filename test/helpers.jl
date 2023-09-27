@@ -1,7 +1,7 @@
 using Agents
 using Test
 
-include("../src/modelspec.jl")
+include("../src/simspec.jl")
 
 _msg(::Clock) = notimplemented()
 _msg(::Monthly) = "monthly-basis"

@@ -7,9 +7,9 @@ Stepping functions for evolving
     or to use agent-specific schudlers as well
 """
 
-function age_step!(person,model)
+function _age_step!(person, model, inc)
     if !(isalive(person)) return nothing end
-    person.age +=  dt(model.clock)
+    person.age += inc
     if person.age == 18
         if oldest_house_occupant(home(person)) !== person
             move_to_empty_house!(person,model)
@@ -17,6 +17,9 @@ function age_step!(person,model)
     end
     return nothing
 end
+_dt(sim) = sim.parameters.dt
+age_step!(person, model) = _age_step!(person, model, dt(model.clock))
+age_step!(person, model, sim) = _age_step!(person, model, _dt(sim))
 
 function population_age_step!(model)
     for person in allagents(model)
@@ -25,17 +28,14 @@ function population_age_step!(model)
     nothing
 end
 
-"applying death probability to an agent"
-function death!(person, model)
-    # Subject to improvement by pre-storing the computation below in a table
-    # age_in_float?
+function _death!(person, pars, numTicksYear)
     if !isalive(person) return false end
     ageDieRate  = ismale(person) ?
-                        exp(age(person) / model.maleAgeScaling)  * model.maleAgeDieRate :
-                        exp(age(person) / model.femaleAgeScaling) * model.femaleAgeDieRate
-    rawRate = model.baseDieRate + ageDieRate
+                        exp(age(person) / pars.maleAgeScaling)  * pars.maleAgeDieRate :
+                        exp(age(person) / pars.femaleAgeScaling) * pars.femaleAgeDieRate
+    rawRate = pars.baseDieRate + ageDieRate
     @assert rawRate < 1
-    deathInstProb = instantaneous_probability(rawRate,model.clock)
+    deathInstProb = instantaneous_probability(rawRate,numTicksYear)
     if rand() < deathInstProb
         set_dead!(person)
         return true
@@ -43,15 +43,18 @@ function death!(person, model)
     return false
 end
 
+"applying death probability to an agent"
+death!(person, model) = _death!(person,model,num_ticks_year(model.clock))
+death!(person, model, sim) = _death!(person, model.parameters, _num_ticks_year(sim))
+
 # Births
 
-function _birth!(woman, model) # should not be used an agent_step!
-    curryear, = date2yearsmonths(currstep(model))
+function _birth!(woman, model, data, numTicksYear, t)
+    if !can_give_birth(woman) return false end
+    curryear, = date2yearsmonths(t)
     yearsold, = date2yearsmonths(age(woman))
-    birthRate =  model.fertility[yearsold-16,curryear-1950]
-    # @show birthRate
-    # @show instantaneous_probability(birthRate,model.clock)
-    if rand() < instantaneous_probability(birthRate,model.clock)
+    birthRate =  data.fertility[yearsold-16,curryear-1950]
+    if rand() < instantaneous_probability(birthRate,numTicksYear)
         baby = Person(nextid(model);mother=woman)
         add_agent_pos!(baby,model)
         return true
@@ -59,10 +62,12 @@ function _birth!(woman, model) # should not be used an agent_step!
     return false
 end
 
-function birth!(person,model) # might be used as an agent_step!
-    if !can_give_birth(person) return false end
-    return _birth!(person,model)
-end
+_currstep(sim) = sim.stepnumber * sim.parameters.dt + sim.parameters.starttime
+
+birth!(person,model) =
+    _birth!(person, model, model, num_ticks_year(model.clock), currstep(model))
+birth!(person, model, sim) =
+    _birth!(person, model, model.data, _num_ticks_year(sim), _currstep(sim))
 
 function dobirths!(model)
     people = allagents(model)
@@ -75,13 +80,25 @@ function dobirths!(model)
     return cnt
 end
 
+function dobirths!(model, sim)
+    people = allagents(model)
+    cnt = 0
+    for rwoman in people
+        if birth!(rwoman, model, sim)
+           cnt += 1
+        end
+    end
+    return cnt
+end
+
 # Divorces
 # do adult children need to move to an empty_house? probably yes!
 
-function _divorce!(man, model)
+function _divorce!(man, model, pars, data, numTicksYear)
+    if !isalive(man) || !ismale(man) || issingle(man) return false  end
     agem = age(man)
-    rawRate = model.basicDivorceRate  * model.divorceModifierByDecade[ceil(Int, agem / 10 )]
-    if rand() < instantaneous_probability(rawRate,model.clock)
+    rawRate = pars.basicDivorceRate  * data.divorceModifierByDecade[ceil(Int, agem / 10 )]
+    if rand() < instantaneous_probability(rawRate,numTicksYear)
         wife = partner(man)
         reset_partnership!(man, wife)
         if has_alive_children(man) && age_youngest_alive_child(man) < 3
@@ -96,10 +113,10 @@ function _divorce!(man, model)
     return false
 end
 
-function divorce!(person, model)
-    if !isalive(person) || !ismale(person) || issingle(person) return false  end
-    return _divorce!(person,model)
-end
+divorce!(person, model) =
+    _divorce!(person, model, model, model, num_ticks_year(model.clock))
+divorce!(person, model, sim) =
+    _divorce!(person, model, model.parameters, model.data, _num_ticks_year(sim))
 
 function dodivorces!(model)
     people = allagents(model)
@@ -155,18 +172,19 @@ function _marry_weight(man, woman, model)::Float64
     return geoFactor * ageFactor * childrenFactor
 end
 
-function domarriages!(model)
+
+function _domarriages!(model,pars,data,numTicksYear)
     cnt = 0
     singleMen = [man for man in allagents(model) if
         is_eligible_marriage(man) && ismale(man)]
     singleWomen = [woman for woman in allagents(model) if
         is_eligible_marriage(woman) && isfemale(woman)]
-    ncandidates = min(model.maxNumberOfMarriageCand,floor(Int,length(singleWomen) / 10))
+    ncandidates = min(pars.maxNumberOfMarriageCand,floor(Int,length(singleWomen) / 10))
     weight = Weights(zeros(ncandidates))
     for man in singleMen
         manMarriageRate =
-            model.basicMaleMarriageRate * model.maleMarriageModifierByDecade[_age_class(man)]
-        if rand() < instantaneous_probability(manMarriageRate,model.clock)
+            pars.basicMaleMarriageRate * data.maleMarriageModifierByDecade[_age_class(man)]
+        if rand() < instantaneous_probability(manMarriageRate, numTicksYear)
             @assert length(singleWomen) >= ncandidates
             wives = sample(singleWomen,ncandidates,replace=false)
             for idx in 1:ncandidates
@@ -180,3 +198,7 @@ function domarriages!(model)
     end
     return cnt
 end
+
+domarriages!(model) = _domarriages!(model, model, model, num_ticks_year(model.clock))
+domarriages!(model, sim) =
+    _domarriages!(model, model.parameters, model.data, _num_ticks_year(sim))

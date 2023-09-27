@@ -11,14 +11,7 @@ function _marriage_agediff_weight(man,woman)
     return ageindex
 end
 
-"""
-Simplified model for an initial population kinship
-Assumptions:
-- No single parents
-- No orphans
-- ages of siblings may be inconsistent (few months difference)
-"""
-function init_kinship!(model)
+function _init_kinship!(model,pars)
     @assert nagents(model) > 0
 
     adultWomen = Person[] ; adultMen = Person[] ; kids = Person[]
@@ -30,16 +23,16 @@ function init_kinship!(model)
         end
     end
 
-    ncandidates = min(model.maxNumberOfMarriageCand,floor(Int,length(adultWomen) / 10))
+    ncandidates = min(pars.maxNumberOfMarriageCand,floor(Int,length(adultWomen) / 10))
     weight = Weights(zeros(ncandidates))
 
     # Establish partners
     for man in adultMen
-        if rand() < model.startMarriedRate
+        if rand() < pars.startMarriedRate
             wives = sample(adultWomen,ncandidates,replace=false)
             for idx in 1:ncandidates
                 weight[idx] = !issingle(wives[idx]) ? 0.0 :
-                    _marriage_agediff_weight(man,wives[idx])
+                _marriage_agediff_weight(man,wives[idx])
             end
             woman = sample(wives,weight)
             set_partnership!(man,woman)
@@ -56,8 +49,17 @@ function init_kinship!(model)
         set_parentship!(child,partner(father))
     end
 
-    nothing
+    return nothing
 end
+
+"""
+Simplified model for an initial population kinship
+Assumptions:
+- No single parents
+- No orphans
+- ages of siblings may be inconsistent (few months difference)
+"""
+init_kinship!(model) = _init_kinship!(model,parameters(model))
 
 """
 assign housing to a population.

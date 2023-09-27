@@ -7,8 +7,6 @@ Collection of methods for declaring the main components of a demographic model:
 using Distributions
 using StatsBase
 
-include("models.jl")
-
 """
 The relative densitiy of each town w.r.t. the town of maximal population
 """
@@ -43,6 +41,19 @@ end
 
 UKDemographicABM(pars) = DemographicABM(declare_UK_map(),pars)
 
+function _declare_population!(model,numTicksYear,initialPop)
+    @assert nagents(model) == 0
+    dist = Normal(0,0.25*100*numTicksYear)
+    agedist = floor.(Int,abs.(rand(dist,initialPop)))
+    # Create population with agedist
+    for a in agedist
+        person = Person(nextid(model),UNDEFINED_HOUSE,random_gender(),
+                        a // numTicksYear)
+        add_agent_pos!(person,model)
+    end
+    return allagents(model)
+end
+
 """
 Simplified model for an initial population
     assumed that that the start of the simulation is in times where significiant portions of
@@ -52,17 +63,10 @@ Simplified model for an initial population
     The model is subject to improvement by parameterizing the employed primative
     distribution for computing age
 """
-function declare_population!(model)
-    @assert nagents(model) == 0
-    dist = Normal(0,0.25*100*num_ticks_year(model.clock))
-    agedist = floor.(Int,abs.(rand(dist,model.initialPop)))
+declare_population!(model) =
+    _declare_population!(model,num_ticks_year(model.clock),model.initialPop)
 
-    # Create population with agedist
-    for a in agedist
-        person = Person(nextid(model),UNDEFINED_HOUSE,random_gender(),
-                        a // num_ticks_year(model.clock))
-        add_agent_pos!(person,model)
-    end
+_num_ticks_year(sim) = sim.parameters.dt == 1 // 365 ? 365 : notimplemented()
 
-    return allagents(model)
-end
+declare_population!(model,simulator) =
+    _declare_population!(model,_num_ticks_year(simulator),model.parameters.initialPop)

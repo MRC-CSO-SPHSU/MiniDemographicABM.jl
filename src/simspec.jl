@@ -1,4 +1,5 @@
 include("./basictypes.jl")
+include("./spec/models.jl")
 include("./spec/declare.jl")
 include("./spec/initialize.jl")
 include("./spec/stepping.jl")

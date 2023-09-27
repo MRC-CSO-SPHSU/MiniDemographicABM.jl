@@ -1,10 +1,18 @@
 using Plots
 
+function add_to_loadpath!(paths...)
+    for path in paths
+        if ! (path in LOAD_PATH)
+            push!(LOAD_PATH, path)
+        end
+    end
+end
+
 notimplemented(msg = "") = error("not implemeented" * msg)
 notneeded(msg = "") = error("not needed" * msg)
 
 invalid_id() = 0
-has_invalid_id(agent::AbstractAgent) = agent.id == invalid_id()
+has_invalid_id(agent) = agent.id == invalid_id()
 
 function plot_number_of_kids_per_distribution(model)
     population = allagents(model)
