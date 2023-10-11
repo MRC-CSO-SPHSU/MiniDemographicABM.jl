@@ -18,7 +18,7 @@ using ABMSim: attach_agent_step!, step!, run!
 
 include("./abmsimspec.jl")
 
-@assert ABMSIMVERSION == v"0.7.1"
+@assert ABMSIMVERSION == v"0.7.2"
 init_abmsim()  # reset agents id counter
 
 # Try without a simulator!
