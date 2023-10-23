@@ -21,7 +21,8 @@ Atiyah Elsheikh (V1.0)
     - V1.0.1 (14.7.23) : updating ReadMe with usually demanded information
 - **V1.1** (28.7.23): Model documentation as a pdf and unified naming convention of model parameters
 - **V1.2** (27.9.23): Equaivalent simulation program based on ABMSim Version 0.7
-    - V1.2.1 (11.10.23): ABMSim V0.7.2 for removing the cause of Agents.jl performance drop when using ABMSim    
+    - V1.2.1 (11.10.23): ABMSim V0.7.2 for removing the cause of Agents.jl performance drop when using ABMSim
+- **V1.3**(23.10.23): improved specification / documentation  
 
 ### License
 MIT License
