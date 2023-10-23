@@ -14,7 +14,7 @@ This package implements a simplified non-calibrated agent-based demographic mode
 [Atiyah Elsheikh](https://www.gla.ac.uk/schools/healthwellbeing/staff/atiyahelsheikh/)
 
 ### Contributor(s)  
-Atiyah Elsheikh (V1.0)  
+Atiyah Elsheikh (V1.0-V1.3)  
 
 ### Release Notes 
 - **V1.0** (22.2.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM, not yet calibrated. A space type was implemented as a demonstration. A comprehensive set of unit tests is included. Blue style coding convetions are followed. 
@@ -39,7 +39,7 @@ This code was developed and experimented on
 
 ### URL 
 Check for updates here: 
-- **V1.0** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
+- **V1.0-V1.3** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
 
 ### Exeution 
 Within Shell:
@@ -80,8 +80,8 @@ Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic mod
   date    = {2023-07-28},
   month   = jul,
   title   = {{MiniDemographicABM.jl}: {A} simplified agent-based demographic model of the {UK}},
-  url     = {https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.1.0/},
-  version = {1.1.0},
+  url     = {https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.3.0/},
+  version = {1.3.0},
   year    = {2023},
 }
 
