@@ -55,13 +55,20 @@ where script names are
 - runalltests.jl: for running unit tests. 
 
 ### References
+
+Specification: 
+
+[1] Atiyah Elsheikh, Specification of MiniDemographicABM.jl: A simplified agent-based demographic model of the UK. Technical report, arXiv:2307.16548, 2023
+
+[2] Atiyah Elsheikh, Formal specification terminology for demographic agent-based models of fixed-step single-clocked simulations. Technical report, arXiv.2308.13081, 2023
+
 The underlying model is inspired by the model given in the following paper:   
 
-[1] Umberto Gostoli and Eric Silverman Social and child care provision in kinship networks: An agent-based model. PLoS ONE 15(12): 2020 (https://doi.org/10.1371/journal.pone.0242779)
+[3] Umberto Gostoli and Eric Silverman Social and child care provision in kinship networks: An agent-based model. PLoS ONE 15(12): 2020 (https://doi.org/10.1371/journal.pone.0242779)
 
 The packages Agents.jl: 
 
-[2] George Datseris, Ali R. Vahdati, Timothy C. DuBois: Agents.jl: a performant and feature-full agent-based modeling software of minimal code complexity. SIMULATION. 2022. doi:10.1177/00375497211068820
+[4] George Datseris, Ali R. Vahdati, Timothy C. DuBois: Agents.jl: a performant and feature-full agent-based modeling software of minimal code complexity. SIMULATION. 2022. doi:10.1177/00375497211068820
 
 ### Acknowledgements  
 - [Dr. Martin Hinsch](https://www.gla.ac.uk/schools/healthwellbeing/staff/martinhinsch/) for Scientific Exchange
@@ -78,7 +85,7 @@ Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic mod
   author  = {Atiyah Elsheikh},
   comment = {CoMSES Computational Model Library},
   date    = {2023-07-28},
-  month   = jul,
+  month   = Oct,
   title   = {{MiniDemographicABM.jl}: {A} simplified agent-based demographic model of the {UK}},
   url     = {https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.3.0/},
   version = {1.3.0},
