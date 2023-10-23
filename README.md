@@ -71,7 +71,7 @@ For the purpose of open access, the author(s) has applied a Creative Commons Att
 
 ### Cite as 
 
-Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic model of the UK. CoMSES Computational Model Library, July 2023. V1.1.0
+Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic model of the UK. CoMSES Computational Model Library, October 2023. V1.3.0
 
 #### bibtex
 @Software{MiniDemographicABMjl,
