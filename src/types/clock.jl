@@ -2,8 +2,11 @@
 Basic data type and functions for realizing age, dates and step sizes of Rational type
 """
 
-include("../util.jl")
+using ABMSim: Clock, Monthly, Daily, Hourly
+using ABMSim: num_ticks_year, instantaneous_probability, date2yearsmonths, format_time
+import ABMSim: dt
 
+#=
 abstract type Clock end
 
 struct Centurly <: Clock end
@@ -40,3 +43,4 @@ function format_time(t,::Daily)
     days = trunc(Int,365 * (t - years) - 365 * months // 12)
     return (years, months, days)
 end
+=#
