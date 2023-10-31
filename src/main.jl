@@ -16,7 +16,9 @@ include("./simspec.jl")
 properties can be accessed in models.jl
 Other clock options: Monthly, Hourly
 =#
-const properties = DemographicABMProp{Daily}(initialPop = 10_000)
+properties = DemographicABMProp{Monthly}(initialPop = 1_000,
+                                         starttime = 1951//1)
+numSimSteps = 12 * 100 # 365 * 10   # or 12 * 10 for Monthly
 const model = UKDemographicABM(properties)
 
 seed!(model,floor(Int,time()))  # really random
@@ -90,7 +92,7 @@ marriedParents = [ p for p in allagents(model) if !issingle(p) && has_children(p
 
 
 @time agent_df, model_df =
-    run!(model,agent_steps!,model_steps!,365*10; adata, mdata)
+    run!(model,agent_steps!,model_steps!,numSimSteps; adata, mdata)
 
 #=
 plot as follows from REPL
