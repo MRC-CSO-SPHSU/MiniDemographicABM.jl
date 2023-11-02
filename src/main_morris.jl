@@ -9,6 +9,7 @@ julia> include("script-name.jl")
 
 using Agents
 using Distributions: Uniform
+using Random
 
 include("./simspec.jl")
 
@@ -19,7 +20,7 @@ include("./simspec.jl")
 # With the functions below, simulation of the ABM model with Agents.jl can be conducted,
 #   see main.jl
 
-declare_model_properties(clock,starttime,initialPop;
+declare_model_properties(clock,starttime,initialPop,seednum;
     startMarriedRate=0.8,
     maxNumberOfMarriageCand=100,
     baseDieRate = 0.0001,
@@ -29,7 +30,7 @@ declare_model_properties(clock,starttime,initialPop;
     femaleAgeScaling = 15.5,
     basicDivorceRate = 0.06,
     basicMaleMarriageRate = 0.7) =
-        DemographicABMProp{clock}(;starttime,initialPop,
+        DemographicABMProp{clock}(;starttime,initialPop,seednum,
             startMarriedRate,maxNumberOfMarriageCand,
             baseDieRate,maleAgeDieRate,maleAgeScaling,
             femaleAgeDieRate,femaleAgeScaling,
@@ -37,7 +38,7 @@ declare_model_properties(clock,starttime,initialPop;
 
 function declare_initialized_UKmodel(clock,properties)
     model = UKDemographicABM(properties)
-    seed!(model,floor(Int,time()))  # really random # TODO seed externally?
+    model.seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(model.seednum)
     declare_population!(model)
     init_kinship!(model) # the kinship among population
     init_housing!(model) # housing assoication to population
@@ -99,18 +100,23 @@ const CLOCK = Monthly
 const STARTTIME = 1951
 const NUMSTEPS = 12 * 100  # 100 year
 const INITIALPOP = 1000
+const SEEDNUM = 1
+
+num_living(model) = length([person for person in allagents(model) if isalive(person)])
+mean_living_age(model) = sum([age(person) for person in allagents(model) if isalive(person)]) / num_living(model)
 
 function avg_livings_age(pars)
     @assert length(pars) == length(ACTIVEPARS)
     for (i,p) in enumerate(pars)
         @assert ACTIVEPARS[i].lowerbound < p <= ACTIVEPARS[i].upperbound
     end
-    properties = declare_model_properties(CLOCK,STARTTIME,INITIALPOP)
+    properties = declare_model_properties(CLOCK,STARTTIME,INITIALPOP,SEEDNUM)
     for (i,p) in enumerate(pars)
         setParValue!(properties,ACTIVEPARS[i],p)
     end
     model = declare_initialized_UKmodel(Monthly,properties)
-    # compute output
+    run!(model,agent_steps!,model_steps!,NUMSTEPS)
+    return float(mean_living_age(model))
 end
 
 ####################################
