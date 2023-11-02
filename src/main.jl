@@ -9,6 +9,7 @@ julia> include("script-name.jl")
 
 using Agents
 using Plots
+using Random
 
 include("./simspec.jl")
 
@@ -16,12 +17,17 @@ include("./simspec.jl")
 properties can be accessed in models.jl
 Other clock options: Monthly, Hourly
 =#
-properties = DemographicABMProp{Monthly}(initialPop = 1_000,
-                                         starttime = 1951//1)
+properties = DemographicABMProp{Monthly}(initialPop = 5_000,
+                                         starttime = 1951//1,
+                                         seednum = 0)
 numSimSteps = 12 * 100 # 365 * 10   # or 12 * 10 for Monthly
+
 const model = UKDemographicABM(properties)
 
-seed!(model,floor(Int,time()))  # really random
+# if model seednum is 0 choose a random seed for model initialization, otherwise
+#   apply seeding with the given seed number
+model.seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(model.seednum)
+
 declare_population!(model)
 init_kinship!(model) # the kinship among population
 init_housing!(model) # housing assoication to population

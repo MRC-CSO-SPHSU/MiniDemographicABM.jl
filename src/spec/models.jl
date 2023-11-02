@@ -59,7 +59,11 @@ end
     nsteps :: Int = 0
 end
 
-@DemogPars @DemogData @ABMTimer mutable struct DemographicABMProp{T<:Clock} end
+@mix @with_kw mutable struct MetaSimPar
+    seednum::Int = -1
+end
+
+@DemogPars @DemogData @MetaSimPar @ABMTimer mutable struct DemographicABMProp{T<:Clock} end
 
 #@delegate_onefield(DemographyPars, clock, [num_ticks_year, dt])
 # num_ticks_year(pars::DemographyPars) = num_ticks_year(pars.clock)
