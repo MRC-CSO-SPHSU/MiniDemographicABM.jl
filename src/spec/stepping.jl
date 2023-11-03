@@ -199,9 +199,11 @@ function _domarriages!(model,pars,data,numTicksYear)
         is_eligible_marriage(man) && ismale(man)]
     singleWomen = [woman for woman in allagents(model) if
         is_eligible_marriage(woman) && isfemale(woman)]
-    ncandidates = min(pars.maxNumberOfMarriageCand,floor(Int,length(singleWomen) / 10))
+    ncandidates = max(pars.maxNumberOfMarriageCand,floor(Int,length(singleWomen) / 10))
+    ncandidates = min(ncandidates,length(singleWomen))
     weight = Weights(zeros(ncandidates))
     for man in singleMen
+        if ncandidates - cnt <= 0 return cnt end
         manMarriageRate =
             pars.basicMaleMarriageRate * data.maleMarriageModifierByDecade[_age_class(man)]
         if rand() < instantaneous_probability(manMarriageRate, numTicksYear)
@@ -214,6 +216,7 @@ function _domarriages!(model,pars,data,numTicksYear)
                     global LSTMAN = man
                     global LSTWOMAN = wives[idx]
                     global LSTMODEL = model
+                    @show length(singleWomen)
                     @show man
                     @show wives[idx]
                     @show _marry_weight(man,wives[idx],model)
@@ -228,6 +231,7 @@ function _domarriages!(model,pars,data,numTicksYear)
                 global LSTMAN = man
                 global LSTWOMAN = partner(man)
                 global LSTMODEL = model
+                @show length(singleWomen)
                 @show length(wives)
                 @show length(weight)
                 @show weight
