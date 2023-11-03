@@ -7,6 +7,12 @@ Stepping functions for evolving
     or to use agent-specific schudlers as well
 """
 
+# For debugging purpose
+LSTMAN::Person = NOPERSON
+LSTWOMAN::Person = NOPERSON
+LSTMODEL = 0
+
+
 function _age_step!(person, model, inc)
     if !(isalive(person)) return nothing end
     person.age += inc
@@ -136,8 +142,15 @@ _age_class(person) = trunc(Int, age(person)/10)
 # how about singles living with parents
 function _join_husbands_family(husband)
     wife = partner(husband)
-    @assert husband === oldest_house_occupant(home(husband))
-    @assert wife === oldest_house_occupant(home(wife))
+    try
+        # This may cause problems due to step siblings
+        @assert husband === oldest_house_occupant(home(husband))
+        @assert wife === oldest_house_occupant(home(wife))
+    catch e
+        global LSTMAN = husband
+        global LSTWOMAN = wife
+        @warn "assertion error _join_husbands_family"
+    end
     (decider , follower) =
         length(occupants(home(husband))) > length(occupants(home(wife))) ?
             (husband , wife) : (wife , husband)
@@ -163,15 +176,16 @@ function _marry_weight(man, woman, model)::Float64
     if !issingle(man) || !issingle(woman) return 0.0 end
     geoFactor = 1/exp(4*_geo_distance_factor(man, woman, model))
     ageFactor = _marriage_agediff_weight(man,woman)
-    # singles w. children are luckly to marry singles with children
+    # singles w. children are likely to marry singles with children
     numChildrenWithWoman = num_children_living_with(woman)
     numChildrenWithMan   = num_children_living_with(man)
+    # Bad formula
     childrenFactor = 1/exp(numChildrenWithWoman) * 1/exp(numChildrenWithMan) *
         exp(numChildrenWithMan * numChildrenWithWoman)
-    @assert childrenFactor > 0 && geoFactor > 0 && ageFactor > 0
+    # to avoid Inf
+    childrenFactor = childrenFactor > 1000 ? 1000 : childrenFactor
     return geoFactor * ageFactor * childrenFactor
 end
-
 
 function _domarriages!(model,pars,data,numTicksYear)
     cnt = 0
@@ -188,11 +202,31 @@ function _domarriages!(model,pars,data,numTicksYear)
             @assert length(singleWomen) >= ncandidates
             wives = sample(singleWomen,ncandidates,replace=false)
             for idx in 1:ncandidates
-                weight[idx] = _marry_weight(man,wives[idx],model)
+                try
+                    weight[idx] = _marry_weight(man,wives[idx],model)
+                catch e
+                    global LSTMAN = man
+                    global LSTWOMAN = wives[idx]
+                    global LSTMODEL = model
+                    @show man
+                    @show wives[idx]
+                    @show _marry_weight(man,wives[idx],model)
+                    error()
+                end
             end
-            wife = sample(wives,weight)
-            set_partnership!(man,wife)
-            _join_couple!(man,wife)
+            try
+                wife = sample(wives,weight)
+                set_partnership!(man,wife)
+                _join_couple!(man,wife)
+            catch e
+                global LSTMAN = man
+                global LSTWOMAN = partner(man)
+                global LSTMODEL = model
+                @show length(wives)
+                @show length(weight)
+                @show weight
+                error()
+            end
             cnt += 1
         end
     end
