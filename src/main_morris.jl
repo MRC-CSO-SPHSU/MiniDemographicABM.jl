@@ -101,8 +101,8 @@ const ACTIVEPARS = [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeSc
     maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ]
 const CLOCK = Monthly
 const STARTTIME = 1951
-const NUMSTEPS = 12 * 100  # 100 year
-const INITIALPOP = 3000
+const NUMSTEPS = 12 * 200  # 100 year
+const INITIALPOP = 1000
 const SEEDNUM = 1
 SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
@@ -125,6 +125,10 @@ function avg_livings_age(pars)
     end
     model = declare_initialized_UKmodel(Monthly,properties)
     run!(model,agent_steps!,model_steps!,NUMSTEPS)
+    if num_living(model) == 0
+        @warn "no living people"
+        return 0.0
+    end
     return float(mean_living_age(model))
 end
 
