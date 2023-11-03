@@ -103,6 +103,12 @@ end
 function _divorce!(man, model, pars, data, numTicksYear)
     if !isalive(man) || !ismale(man) || issingle(man) return false  end
     agem = age(man)
+    try
+        _x = data.divorceModifierByDecade[ceil(Int, agem / 10 )]
+    catch e
+        @show agem
+        error("array bound error")
+    end
     rawRate = pars.basicDivorceRate  * data.divorceModifierByDecade[ceil(Int, agem / 10 )]
     if rand() < instantaneous_probability(rawRate,numTicksYear)
         wife = partner(man)
