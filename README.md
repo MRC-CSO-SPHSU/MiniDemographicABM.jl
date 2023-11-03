@@ -84,10 +84,9 @@ Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic mod
 @Software{MiniDemographicABMjl,
   author  = {Atiyah Elsheikh},
   comment = {CoMSES Computational Model Library},
-  date    = {2023-07-28},
   month   = Oct,
   title   = {{MiniDemographicABM.jl}: {A} simplified agent-based demographic model of the {UK}},
-  url     = {https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.3.0/},
+  url     = { https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.3.0/ },
   version = {1.3.0},
   year    = {2023},
 }
