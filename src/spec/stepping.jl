@@ -8,9 +8,9 @@ Stepping functions for evolving
 """
 
 # For debugging purpose
-LSTMAN::Person = NOPERSON
-LSTWOMAN::Person = NOPERSON
-LSTMODEL = 0
+# LSTMAN::Person = NOPERSON
+# LSTWOMAN::Person = NOPERSON
+# LSTMODEL = 0
 
 
 function _age_step!(person, model, inc)
@@ -103,12 +103,14 @@ end
 function _divorce!(man, model, pars, data, numTicksYear)
     if !isalive(man) || !ismale(man) || issingle(man) return false  end
     agem = age(man)
+    #=
     try
         _x = data.divorceModifierByDecade[ceil(Int, agem / 10 )]
     catch e
         @show agem
-        error("array bound error")
+        error("someone with large age")
     end
+    =#
     rawRate = pars.basicDivorceRate  * data.divorceModifierByDecade[ceil(Int, agem / 10 )]
     if rand() < instantaneous_probability(rawRate,numTicksYear)
         wife = partner(man)
@@ -148,6 +150,7 @@ _age_class(person) = trunc(Int, age(person)/10)
 # how about singles living with parents
 function _join_husbands_family(husband)
     wife = partner(husband)
+    #=
     try
         # This may cause problems due to step siblings
         @assert husband === oldest_house_occupant(home(husband))
@@ -157,6 +160,7 @@ function _join_husbands_family(husband)
         global LSTWOMAN = wife
         @warn "assertion error _join_husbands_family"
     end
+    =#
     (decider , follower) =
         length(occupants(home(husband))) > length(occupants(home(wife))) ?
             (husband , wife) : (wife , husband)
@@ -210,33 +214,11 @@ function _domarriages!(model,pars,data,numTicksYear)
             @assert length(singleWomen) >= ncandidates
             wives = sample(singleWomen,ncandidates,replace=false)
             for idx in 1:ncandidates
-                try
-                    weight[idx] = _marry_weight(man,wives[idx],model)
-                catch e
-                    global LSTMAN = man
-                    global LSTWOMAN = wives[idx]
-                    global LSTMODEL = model
-                    @show length(singleWomen)
-                    @show man
-                    @show wives[idx]
-                    @show _marry_weight(man,wives[idx],model)
-                    error()
-                end
+                weight[idx] = _marry_weight(man,wives[idx],model)
             end
-            try
-                wife = sample(wives,weight)
-                set_partnership!(man,wife)
-                _join_couple!(man,wife)
-            catch e
-                global LSTMAN = man
-                global LSTWOMAN = partner(man)
-                global LSTMODEL = model
-                @show length(singleWomen)
-                @show length(wives)
-                @show length(weight)
-                @show weight
-                error()
-            end
+            wife = sample(wives,weight)
+            set_partnership!(man,wife)
+            _join_couple!(man,wife)
             cnt += 1
         end
     end
