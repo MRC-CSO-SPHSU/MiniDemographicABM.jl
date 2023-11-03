@@ -36,11 +36,12 @@ end
 
 function _death!(person, pars, numTicksYear)
     if !isalive(person) return false end
+    # bad formula
     ageDieRate  = ismale(person) ?
                         exp(age(person) / pars.maleAgeScaling)  * pars.maleAgeDieRate :
                         exp(age(person) / pars.femaleAgeScaling) * pars.femaleAgeDieRate
     rawRate = pars.baseDieRate + ageDieRate
-    @assert rawRate < 1
+    rawRate = rawRate >= 1 ? 0.99 : rawRate
     deathInstProb = instantaneous_probability(rawRate,numTicksYear)
     if rand() < deathInstProb
         set_dead!(person)
