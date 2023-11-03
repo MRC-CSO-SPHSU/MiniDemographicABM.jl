@@ -15,7 +15,11 @@ include("./simspec.jl")
 
 #=
 properties can be accessed in models.jl
-Other clock options: Monthly, Hourly
+clock options: Monthly, Daily, Hourly
+Other model parameters :
+    startMarriedRate=0.8, maxNumberOfMarriageCand=100, baseDieRate = 0.0001,
+    maleAgeDieRate = 0.00021, maleAgeScaling = 14.0, femaleAgeDieRate = 0.00019,
+    femaleAgeScaling = 15.5, basicDivorceRate = 0.06, basicMaleMarriageRate = 0.7
 =#
 properties = DemographicABMProp{Monthly}(initialPop = 5_000,
                                          starttime = 1951//1,
@@ -32,13 +36,13 @@ declare_population!(model)
 init_kinship!(model) # the kinship among population
 init_housing!(model) # housing assoication to population
 
-function agent_steps!(person,model)
+function _agent_steps!(person,model)
     age_step!(person,model)
     death!(person,model)
     divorce!(person,model)
 end
 
-function model_steps!(model)
+function _model_steps!(model)
     metastep!(model) # incrementing time
     dobirths!(model)
     domarriages!(model)
@@ -98,7 +102,7 @@ marriedParents = [ p for p in allagents(model) if !issingle(p) && has_children(p
 
 
 @time agent_df, model_df =
-    run!(model,agent_steps!,model_steps!,numSimSteps; adata, mdata)
+    run!(model,_agent_steps!,_model_steps!,numSimSteps; adata, mdata)
 
 #=
 plot as follows from REPL
