@@ -8,6 +8,7 @@ julia> include("script-name.jl")
 """
 
 using Agents
+using GlobalSensitivity
 using Distributions: Uniform
 using Random
 
@@ -73,7 +74,7 @@ mutable struct ActiveParameter{ValType}
 end
 setParValue!(model,activePar,val) = setfield!(model, activePar.name, val)
 
-const startMarriedRate = ActiveParameter{Float64}(0.01,0.99,:startMarriedRate)
+const startMarriedRate = ActiveParameter{Float64}(0.25,0.9,:startMarriedRate)
 
 # death parameters / yearly comulative (adhoc no model identification conducted)
 const baseDieRate = ActiveParameter{Float64}(0.00005,0.00015,:baseDieRate)
@@ -94,21 +95,29 @@ const basicMaleMarriageRate = ActiveParameter{Float64}(0.1,0.9,:basicMaleMarriag
 ##
 ##  using the following global constants below
 
+
+# TODO abstract the following as a task / problem
 const ACTIVEPARS = [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeScaling,
     maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ]
 const CLOCK = Monthly
 const STARTTIME = 1951
 const NUMSTEPS = 12 * 100  # 100 year
-const INITIALPOP = 1000
+const INITIALPOP = 3000
 const SEEDNUM = 1
+SIMCNT::Int = 0
+LASTPAR::Vector{Float64} = []
 
 num_living(model) = length([person for person in allagents(model) if isalive(person)])
-mean_living_age(model) = sum([age(person) for person in allagents(model) if isalive(person)]) / num_living(model)
+mean_living_age(model) =
+    sum([age(person) for person in allagents(model) if isalive(person)]) / num_living(model)
 
 function avg_livings_age(pars)
+    global SIMCNT += 1
+    println("simulation # $(SIMCNT) ")
+    global LASTPAR = pars
     @assert length(pars) == length(ACTIVEPARS)
     for (i,p) in enumerate(pars)
-        @assert ACTIVEPARS[i].lowerbound < p <= ACTIVEPARS[i].upperbound
+        @assert ACTIVEPARS[i].lowerbound <= p <= ACTIVEPARS[i].upperbound
     end
     properties = declare_model_properties(CLOCK,STARTTIME,INITIALPOP,SEEDNUM)
     for (i,p) in enumerate(pars)
@@ -123,8 +132,7 @@ end
 # Step IV - generate parameter sample
 ####################################
 # Given the set of selected active parameters, their lower and upper bounds,
-#  generate a sample parameter set using a uniform distribution
-
+#  generate a sample parameter set using a uniform distribution / just for testing
 
 function sample_parameters()
     pars = zeros(length(ACTIVEPARS))
@@ -134,4 +142,13 @@ function sample_parameters()
     return pars
 end
 
-## Perform SA using Morris method
+########################################
+# Step V - Perform SA using Morris method
+#########################################
+
+lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
+ubs = [ ap.upperbound for ap in ACTIVEPARS ]
+
+res = gsa(  avg_livings_age,
+            Morris(relative_scale=true),
+            [ [lbs[i],ubs[i]] for i in 1:length(ubs) ] )
