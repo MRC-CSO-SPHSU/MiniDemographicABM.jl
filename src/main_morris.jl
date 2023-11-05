@@ -142,3 +142,9 @@ As expected,
 * the least influentiable (may be due to correlation)
     - maleAgeScaling, femaleAgeScaling
 =#
+
+
+# Visualize the results
+scatter(log.(res.means_star[:]), res.variances[1,:],
+    series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
+    label="(log(mean*),sigma)")
