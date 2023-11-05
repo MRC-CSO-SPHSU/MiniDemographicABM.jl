@@ -53,9 +53,9 @@ end
 const startMarriedRate = ActiveParameter{Float64}(0.25,0.9,:startMarriedRate)
 const baseDieRate = ActiveParameter{Float64}(0.00005,0.00015,:baseDieRate)
 const femaleAgeDieRate = ActiveParameter{Float64}(0.0001,0.0003,:femaleAgeDieRate)
-const femaleAgeScaling = ActiveParameter{Float64}(13.0,33.0,:femaleAgeScaling)
+const femaleAgeScaling = ActiveParameter{Float64}(15.1,18.1,:femaleAgeScaling)
 const maleAgeDieRate = ActiveParameter{Float64}(0.0001,0.0003,:maleAgeDieRate)
-const maleAgeScaling = ActiveParameter{Float64}(8.0,28.0,:maleAgeScaling)
+const maleAgeScaling = ActiveParameter{Float64}(12.0,15.0,:maleAgeScaling)
 const basicDivorceRate = ActiveParameter{Float64}(0.01,0.09,:basicDivorceRate)
 const basicMaleMarriageRate = ActiveParameter{Float64}(0.1,0.9,:basicMaleMarriageRate)
 
@@ -76,7 +76,7 @@ const ACTIVEPARS = [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeSc
 const CLOCK = Monthly
 const STARTTIME = 1951
 const NUMSTEPS = 12 * 100  # 100 year
-const INITIALPOP = 3000
+const INITIALPOP = 10000
 const SEEDNUM = 1
 SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
@@ -87,7 +87,7 @@ mean_living_age(model) =
 
 function avg_livings_age(pars)
     global SIMCNT += 1
-    println("simulation # $(SIMCNT) ")
+    SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
     global LASTPAR = pars
     @assert length(pars) == length(ACTIVEPARS)
     for (i,p) in enumerate(pars)
@@ -125,5 +125,20 @@ lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
 ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 
 @time res = gsa(  avg_livings_age,
-            Morris(relative_scale=true),
+            Morris(relative_scale=true, num_trajectory=20),
             [ [lbs[i],ubs[i]] for i in 1:length(ubs) ] )
+
+#=
+Results can be accessed via
+
+res.means[i] : the overall influence of the i-th parameter on the output
+res.means_star [i]: the mean of the absolute influence of the i-th parameter
+res.variances [i] : the ensemble of the i-th parameter higer order effects
+
+As expected,
+* the most important parameters w.r.t. the output mean_living_age and the parameter space :
+    - maleAgeDieRate, femaleAgeDieRate, baseDieRate (order depends on parameter space)
+
+* the least influentiable (may be due to correlation)
+    - maleAgeScaling, femaleAgeScaling
+=#
