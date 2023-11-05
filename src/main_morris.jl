@@ -76,7 +76,7 @@ const ACTIVEPARS = [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeSc
 const CLOCK = Monthly
 const STARTTIME = 1951
 const NUMSTEPS = 12 * 100  # 100 year
-const INITIALPOP = 1000 # 10000
+const INITIALPOP = 10000 # 10000
 const SEEDNUM = 1
 SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
@@ -125,7 +125,7 @@ lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
 ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 
 @time res = gsa(  avg_livings_age,
-            Morris(relative_scale=true, num_trajectory=10),
+            Morris(relative_scale=true, num_trajectory=20),
             [ [lbs[i],ubs[i]] for i in 1:length(ubs) ] )
 
 #=
