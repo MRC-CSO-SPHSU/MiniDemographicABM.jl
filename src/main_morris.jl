@@ -93,7 +93,8 @@ mean_living_age(model) =
     sum([age(person) for person in allagents(model) if isalive(person)]) / num_living(model)
 ratio_males(model) = num_living_males(model) / num_living(model)
 ratio_children(model) = num_living_children(model) / num_living(model)
-ratio_singles(model) = (num_living_singles(model) - num_living_children(model))/ num_living(model)
+ratio_singles(model) =
+    (num_living_singles(model) - num_living_children(model)) / num_living(model)
 
 function outputs(pars)
     global SIMCNT += 1
@@ -156,7 +157,7 @@ As expected,
     - maleAgeScaling, femaleAgeScaling
 =#
 
-# Visualize the results
-scatter(log.(res.means_star[:]), res.variances[1,:],
+# Visualize the result w.r.t. the variable mean_living_age
+scatter(log.(res.means_star[2,:]), res.variances[2,:],
     series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
     label="(log(mean*),sigma)")
