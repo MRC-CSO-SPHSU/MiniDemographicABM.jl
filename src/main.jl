@@ -21,7 +21,7 @@ Other model parameters :
     maleAgeDieRate = 0.00021, maleAgeScaling = 14.0, femaleAgeDieRate = 0.00019,
     femaleAgeScaling = 15.5, basicDivorceRate = 0.06, basicMaleMarriageRate = 0.7
 =#
-properties = DemographicABMProp{Monthly}(initialPop = 5_000,
+properties = DemographicABMProp{Monthly}(initialPop = 10_000,
                                          starttime = 1951//1,
                                          seednum = 0)
 numSimSteps = 12 * 100 # 365 * 10   # or 12 * 10 for Monthly
