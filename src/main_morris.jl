@@ -31,24 +31,8 @@ via the calls
 # Step II - active parameters
 #############################
 # Define active parameters w.r.t. which SA is sought
+# cf. /types/activePars.jl for definition of the type active parameters
 
-mutable struct ActiveParameter{ValType}
-    lowerbound::ValType
-    upperbound::ValType
-    name::Symbol
-    function ActiveParameter{ValType}(low,upp,id) where ValType
-        @assert low <= upp
-        new(low,upp,id)
-    end
-end
-set_par_value!(model,activePar,val) = setfield!(model, activePar.name, val)
-function sample_parameters(apars)
-    pars = zeros(length(apars))
-    for (i,ap) in enumerate(apars)
-        pars[i] =  rand(Uniform(ap.lowerbound,ap.upperbound))
-    end
-    return pars
-end
 
 const startMarriedRate = ActiveParameter{Float64}(0.25,0.9,:startMarriedRate)
 const baseDieRate = ActiveParameter{Float64}(0.00005,0.00015,:baseDieRate)
