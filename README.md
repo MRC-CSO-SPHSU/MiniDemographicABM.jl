@@ -14,7 +14,7 @@ This package implements a simplified non-calibrated agent-based demographic mode
 [Atiyah Elsheikh](https://www.gla.ac.uk/schools/healthwellbeing/staff/atiyahelsheikh/)
 
 ### Contributor(s)  
-Atiyah Elsheikh (V1.0-V1.3)  
+Atiyah Elsheikh (V1.0-V2.0)  
 
 ### Release Notes 
 - **V1.0** (22.2.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM, not yet calibrated. A space type was implemented as a demonstration. A comprehensive set of unit tests is included. Blue style coding convetions are followed. 
@@ -23,6 +23,7 @@ Atiyah Elsheikh (V1.0-V1.3)
 - **V1.2** (27.9.23): Equaivalent simulation program based on ABMSim Version 0.7
     - V1.2.1 (11.10.23): ABMSim V0.7.2 for removing the cause of Agents.jl performance drop when using ABMSim
 - **V1.3**(23.10.23): improved specification / documentation  
+- **V2.0**(6.11.23): Global Sensitivity Analysis with Morris Index, bugs resolved due to expansion of the parameter space 
 
 ### License
 MIT License
@@ -39,7 +40,7 @@ This code was developed and experimented on
 
 ### URL 
 Check for updates here: 
-- **V1.0-V1.3** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
+- **V1.0-V2.0** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
 
 ### Exeution 
 Within Shell:
@@ -69,6 +70,15 @@ The underlying model is inspired by the model given in the following paper:
 The packages Agents.jl: 
 
 [4] George Datseris, Ali R. Vahdati, Timothy C. DuBois: Agents.jl: a performant and feature-full agent-based modeling software of minimal code complexity. SIMULATION. 2022. doi:10.1177/00375497211068820
+
+The package GlobalSensitity.jl
+
+[5] Vaibhav Kumar Dixit and Christopher Rackauckas: GlobalSensitivity.jl: Performant and Parallel Global Sensitivity Analysis with Julia, Journal of Open Source Software, 2022
+
+Morris index algorithm via
+
+[6] F. Campolongo, J. Cariboni & A. Saltelli (2007). An effective screening design for sensitivity
+analysis of large models. Environmental Modelling & Software, 22(10), 1509–1518.
 
 ### Acknowledgements  
 - [Dr. Martin Hinsch](https://www.gla.ac.uk/schools/healthwellbeing/staff/martinhinsch/) for Scientific Exchange
