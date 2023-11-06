@@ -138,27 +138,25 @@ lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
 ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 
 @time res = gsa(outputs,
-            Morris(relative_scale=true, num_trajectory=30),
-            [ [lbs[i],ubs[i]] for i in 1:length(ubs) ] )
+            Morris(relative_scale=true, num_trajectory=10),
+            [ [lbs[i],ubs[i]] for i in 1:length(ubs) ])
 
 #=
-Results can be accessed via
+Results regarding the output mean_living_age can be accessed via
 
-res.means[i] : the overall influence of the i-th parameter on the output
-res.means_star [i]: the mean of the absolute influence of the i-th parameter
-res.variances [i] : the ensemble of the i-th parameter higer order effects
+res.means[2,i] : the overall influence of the i-th parameter on the output
+res.means_star [2,i] : the mean of the absolute influence of the i-th parameter
+res.variances [2,i] : the ensemble of the i-th parameter higer order effects
 
 As expected,
 * the most important parameters w.r.t. the output mean_living_age and the parameter space :
     - maleAgeDieRate, femaleAgeDieRate, baseDieRate (order depends on parameter space)
 
-* the least influentiable (may be due to correlation)
+* the least influentiable
     - maleAgeScaling, femaleAgeScaling
 =#
 
-#=
 # Visualize the results
 scatter(log.(res.means_star[:]), res.variances[1,:],
     series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
     label="(log(mean*),sigma)")
-=#
