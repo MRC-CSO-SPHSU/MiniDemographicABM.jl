@@ -53,9 +53,9 @@ end
 const startMarriedRate = ActiveParameter{Float64}(0.25,0.9,:startMarriedRate)
 const baseDieRate = ActiveParameter{Float64}(0.00005,0.00015,:baseDieRate)
 const femaleAgeDieRate = ActiveParameter{Float64}(0.0001,0.0003,:femaleAgeDieRate)
-const femaleAgeScaling = ActiveParameter{Float64}(15.1,18.1,:femaleAgeScaling)
+const femaleAgeScaling = ActiveParameter{Float64}(15.1,16.0,:femaleAgeScaling)
 const maleAgeDieRate = ActiveParameter{Float64}(0.0001,0.0003,:maleAgeDieRate)
-const maleAgeScaling = ActiveParameter{Float64}(12.0,15.0,:maleAgeScaling)
+const maleAgeScaling = ActiveParameter{Float64}(14.0,15.0,:maleAgeScaling)
 const basicDivorceRate = ActiveParameter{Float64}(0.01,0.09,:basicDivorceRate)
 const basicMaleMarriageRate = ActiveParameter{Float64}(0.1,0.9,:basicMaleMarriageRate)
 
@@ -76,16 +76,26 @@ const ACTIVEPARS = [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeSc
 const CLOCK = Monthly
 const STARTTIME = 1951
 const NUMSTEPS = 12 * 100  # 100 year
-const INITIALPOP = 10000 # 10000
+const INITIALPOP = 3000
 const SEEDNUM = 1
 SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
 
 num_living(model) = length([person for person in allagents(model) if isalive(person)])
+num_living_males(model) =
+    length([person for person in allagents(model) if isalive(person) && ismale(person)])
+num_living_children(model) =
+    length([person for person in allagents(model) if isalive(person) && ischild(person)])
+num_living_singles(model) =
+    length([person for person in allagents(model) if isalive(person) && issingle(person)])
+
 mean_living_age(model) =
     sum([age(person) for person in allagents(model) if isalive(person)]) / num_living(model)
+ratio_males(model) = num_living_males(model) / num_living(model)
+ratio_children(model) = num_living_children(model) / num_living(model)
+ratio_singles(model) = (num_living_singles(model) - num_living_children(model))/ num_living(model)
 
-function avg_livings_age(pars)
+function outputs(pars)
     global SIMCNT += 1
     SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
     global LASTPAR = pars
@@ -103,9 +113,12 @@ function avg_livings_age(pars)
     run!(model,agent_steps!,model_steps!,NUMSTEPS)
     if num_living(model) == 0
         @warn "no living people"
-        return 0.0
+        return [ 100.0, 0.5, 0.0, 0.0]
     end
-    return float(mean_living_age(model))
+    return [ ratio_singles(model),
+             float(mean_living_age(model)) ,
+             ratio_males(model),
+             ratio_children(model) ]
 end
 
 ####################################
@@ -124,8 +137,8 @@ end
 lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
 ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 
-@time res = gsa(  avg_livings_age,
-            Morris(relative_scale=true, num_trajectory=20),
+@time res = gsa(outputs,
+            Morris(relative_scale=true, num_trajectory=30),
             [ [lbs[i],ubs[i]] for i in 1:length(ubs) ] )
 
 #=
@@ -143,8 +156,9 @@ As expected,
     - maleAgeScaling, femaleAgeScaling
 =#
 
-
+#=
 # Visualize the results
 scatter(log.(res.means_star[:]), res.variances[1,:],
     series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
     label="(log(mean*),sigma)")
+=#
