@@ -30,7 +30,7 @@ via the calls
 #############################
 # Step II - active parameters
 #############################
-# Define active parameters to which SA is sought
+# Define active parameters w.r.t. which SA is sought
 
 mutable struct ActiveParameter{ValType}
     lowerbound::ValType
@@ -41,7 +41,7 @@ mutable struct ActiveParameter{ValType}
         new(low,upp,id)
     end
 end
-setParValue!(model,activePar,val) = setfield!(model, activePar.name, val)
+set_par_value!(model,activePar,val) = setfield!(model, activePar.name, val)
 function sample_parameters(apars)
     pars = zeros(length(apars))
     for (i,ap) in enumerate(apars)
@@ -108,7 +108,7 @@ function outputs(pars)
         initialPop = INITIALPOP,
         seednum = SEEDNUM)
     for (i,p) in enumerate(pars)
-        setParValue!(properties,ACTIVEPARS[i],p)
+        set_par_value!(properties,ACTIVEPARS[i],p)
     end
     model = declare_initialized_UKmodel(Monthly,properties)
     run!(model,agent_steps!,model_steps!,NUMSTEPS)
