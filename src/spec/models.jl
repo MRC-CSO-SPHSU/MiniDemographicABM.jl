@@ -147,3 +147,23 @@ function move_to_empty_house!(person,model)
     ehouse = has_empty_house(town) ? rand(empty_houses(town)) : add_empty_house!(model,town)
     set_house!(person,ehouse)
 end
+
+####################
+# stats functions
+####################
+
+num_deads(model) = length([person for person in allagents(model) if !isalive(person)])
+num_living(model) = length([person for person in allagents(model) if isalive(person)])
+num_living_males(model) =
+    length([person for person in allagents(model) if isalive(person) && ismale(person)])
+num_living_children(model) =
+    length([person for person in allagents(model) if isalive(person) && ischild(person)])
+num_living_singles(model) =
+    length([person for person in allagents(model) if isalive(person) && issingle(person)])
+
+mean_living_age(model) =
+    sum([age(person) for person in allagents(model) if isalive(person)]) / num_living(model)
+ratio_males(model) = num_living_males(model) / num_living(model)
+ratio_children(model) = num_living_children(model) / num_living(model)
+ratio_singles(model) =
+    (num_living_singles(model) - num_living_children(model)) / num_living(model)

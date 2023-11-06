@@ -66,21 +66,12 @@ B. via modelData:
 agent accessory functions can be accessed in person.jl
 Data collection is conducted via the DataFrame.jl work package.
 =#
-num_deads(model) = length([person for person in allagents(model) if !isalive(person)])
 
-num_living(model) = length([person for person in allagents(model) if isalive(person)])
-num_living_males(model) = length([person for person in allagents(model) if isalive(person) && ismale(person)])
-ratio_males(model) = num_living_males(model) / num_living(model)
-
-mean_living_age(model) = sum([age(person) for person in allagents(model) if isalive(person)]) / num_living(model)
-
-num_children(model) = length([person for person in allagents(model) if isalive(person) && ischild(person)])
-ratio_children(model) = num_children(model) / num_living(model)
-
-num_singles(model) = length([person for person in allagents(model) if isalive(person) && issingle(person)])
-ratio_singles(model) = (num_singles(model) - num_children(model))/ num_living(model)
-
+# the entries of the vectors below are referring to built-in or
+#   functions in /basictypes/person.jl
 adata = [(isalive,sum), (ismale,sum,isalive), (age,mean,isalive), (age,maximum),(age,maximum,isalive)]
+
+# The entries below correspond to functions defined in /spec/models.jl
 mdata = [num_deads, ratio_males, mean_living_age, ratio_singles, ratio_children, currstep]
 
 #=

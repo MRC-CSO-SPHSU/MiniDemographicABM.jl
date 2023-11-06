@@ -43,20 +43,26 @@ const maleAgeScaling = ActiveParameter{Float64}(14.0,15.0,:maleAgeScaling)
 const basicDivorceRate = ActiveParameter{Float64}(0.01,0.09,:basicDivorceRate)
 const basicMaleMarriageRate = ActiveParameter{Float64}(0.1,0.9,:basicMaleMarriageRate)
 
+const ACTIVEPARS = [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeScaling,
+    maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ]
 
 ##################################
 # Step III - Input/Output function
 ##################################
 ## Define a simple simulation-based function of the form y = f(x)
-##  output  : the average age of the living population
+##  outputs : vector of model outputs
+##    1. ratio of singles
+##    2. average ago of living population
+##    3. ratio males
+##    4. ratio of children
+##
 ##  input   : selected model parameters w.r.t. SA is sought
 ##
 ##  using the following global constants below
-
+##
 
 # TODO abstract the following as a task / problem
-const ACTIVEPARS = [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeScaling,
-    maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ]
+
 const CLOCK = Monthly
 const STARTTIME = 1951
 const NUMSTEPS = 12 * 100  # 100 year
@@ -64,21 +70,6 @@ const INITIALPOP = 10000
 const SEEDNUM = 1
 SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
-
-num_living(model) = length([person for person in allagents(model) if isalive(person)])
-num_living_males(model) =
-    length([person for person in allagents(model) if isalive(person) && ismale(person)])
-num_living_children(model) =
-    length([person for person in allagents(model) if isalive(person) && ischild(person)])
-num_living_singles(model) =
-    length([person for person in allagents(model) if isalive(person) && issingle(person)])
-
-mean_living_age(model) =
-    sum([age(person) for person in allagents(model) if isalive(person)]) / num_living(model)
-ratio_males(model) = num_living_males(model) / num_living(model)
-ratio_children(model) = num_living_children(model) / num_living(model)
-ratio_singles(model) =
-    (num_living_singles(model) - num_living_children(model)) / num_living(model)
 
 function outputs(pars)
     global SIMCNT += 1
