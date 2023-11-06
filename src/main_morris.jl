@@ -61,7 +61,25 @@ const ACTIVEPARS = [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeSc
 ##  using the following global constants below
 ##
 
+#=
 # TODO abstract the following as a task / problem
+# For example
+
+abstract type CompProblem end
+
+mutable struct type ABMSAProb <: CompProblem
+    apars::Vector{ActiveParameter}
+    fixedpars::Dict{Symbol,Any}
+    simpars::Dict{Symbol,Any}
+    simcnt::Int
+    lastpar::Vector{Float64}
+
+    ABMSAProb(aps::vector{ActivePars}, mpars, spars) =
+        new(aps, spars, mpars, 0, zeros(length(aps)))
+end
+=#
+# const _MORRIS = ABMSAProb
+
 
 const CLOCK = Monthly
 const STARTTIME = 1951
@@ -72,10 +90,14 @@ SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
 
 function outputs(pars)
-    global SIMCNT += 1
-    SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
-    global LASTPAR = pars
-    @assert length(pars) == length(ACTIVEPARS)
+    #global SIMCNT += 1
+    #SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
+    #global LASTPAR = pars
+    # @assert length(pars) == length(ACTIVEPARS)
+    if length(pars) != length(ACTIVEPARS)
+        @show size(pars)
+        error()
+    end
     for (i,p) in enumerate(pars)
         @assert ACTIVEPARS[i].lowerbound <= p <= ACTIVEPARS[i].upperbound
     end
@@ -97,6 +119,10 @@ function outputs(pars)
              ratio_children(model) ]
 end
 
+# TODO , parallelization requires the following API
+#   function outputs(pmatrix::Matrix{Float64})
+
+
 ####################################
 # Step IV - generate parameter sample
 ####################################
@@ -115,7 +141,8 @@ ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 
 @time res = gsa(outputs,
             Morris(relative_scale=true, num_trajectory=30),
-            [ [lbs[i],ubs[i]] for i in 1:length(ubs) ])
+            [ [lbs[i],ubs[i]] for i in 1:length(ubs) ]
+            # batch = true) for parallelization
 
 #=
 Results regarding the output mean_living_age can be accessed via
