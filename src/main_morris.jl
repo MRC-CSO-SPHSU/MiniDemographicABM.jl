@@ -80,7 +80,6 @@ end
 =#
 # const _MORRIS = ABMSAProb
 
-
 const CLOCK = Monthly
 const STARTTIME = 1951
 const NUMSTEPS = 12 * 100  # 100 year
@@ -122,9 +121,9 @@ end
 # TODO , parallelization requires the following API
 function outputs(pmatrix::Matrix{Float64})
     @assert size(pmatrix)[1] == length(ACTIVEPARS)
-    res = zeros(size(pmatrix)[2], 4)
+    res = zeros(4,size(pmatrix)[2])
     for i in 1 : size(pmatrix)[2]
-        res[i,:] = outputs(pmatrix[:,i])
+        res[:,i] = outputs(pmatrix[:,i])
     end
     return res
 end
@@ -146,7 +145,8 @@ lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
 ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 
 #=
-@time res = gsa(outputs,
+# cf. GlobalSensitivity.jl documnetation for documentation of the Morris method arguments
+@time morrisInd = gsa(outputs,
             Morris(relative_scale=true, num_trajectory=10, total_num_trajectories=200),
             [ [lbs[i],ubs[i]] for i in 1:length(ubs) ])
             # batch = true) for parallelization
@@ -170,4 +170,19 @@ As expected,
 scatter(log.(res.means_star[2,:]), res.variances[2,:],
     series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
     label="(log(mean*),sigma)")
+=#
+
+#=
+To compute sobol indices, this can be done as follows:
+
+either
+sobolInd = gsa(outputs, Sobol(), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ], samples = 100)
+
+or
+
+A = sample(100,ACTIVEPARS,SobolSample()) ;
+B = sample(100,ACTIVEPARS,SobolSample()) ;
+
+sobolInd - gsa(outputs, Sobol(), A, B)
+
 =#
