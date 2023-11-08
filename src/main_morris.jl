@@ -84,14 +84,14 @@ end
 const CLOCK = Monthly
 const STARTTIME = 1951
 const NUMSTEPS = 12 * 100  # 100 year
-const INITIALPOP = 10000
+const INITIALPOP = 3000
 const SEEDNUM = 1
 SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
 
 function outputs(pars)
-    #global SIMCNT += 1
-    #SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
+    global SIMCNT += 1
+    SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
     #global LASTPAR = pars
     # @assert length(pars) == length(ACTIVEPARS)
     if length(pars) != length(ACTIVEPARS)
@@ -111,17 +111,23 @@ function outputs(pars)
     run!(model,agent_steps!,model_steps!,NUMSTEPS)
     if num_living(model) == 0
         @warn "no living people"
-        return [ 100.0, 0.5, 0.0, 0.0]
+        return [ 1e-3, 100.0, 0.5, 1e-3]
     end
     return [ ratio_singles(model),
              float(mean_living_age(model)) ,
              ratio_males(model),
-             ratio_children(model) ]
+             max(ratio_children(model),1e-3) ]
 end
 
 # TODO , parallelization requires the following API
-#   function outputs(pmatrix::Matrix{Float64})
-
+function outputs(pmatrix::Matrix{Float64})
+    @assert size(pmatrix)[1] == length(ACTIVEPARS)
+    res = zeros(size(pmatrix)[2], 4)
+    for i in 1 : size(pmatrix)[2]
+        res[i,:] = outputs(pmatrix[:,i])
+    end
+    return res
+end
 
 ####################################
 # Step IV - generate parameter sample
@@ -139,9 +145,10 @@ end
 lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
 ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 
+#=
 @time res = gsa(outputs,
-            Morris(relative_scale=true, num_trajectory=30),
-            [ [lbs[i],ubs[i]] for i in 1:length(ubs) ]
+            Morris(relative_scale=true, num_trajectory=10, total_num_trajectories=200),
+            [ [lbs[i],ubs[i]] for i in 1:length(ubs) ])
             # batch = true) for parallelization
 
 #=
@@ -163,3 +170,4 @@ As expected,
 scatter(log.(res.means_star[2,:]), res.variances[2,:],
     series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
     label="(log(mean*),sigma)")
+=#
