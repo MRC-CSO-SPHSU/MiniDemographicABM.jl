@@ -11,6 +11,7 @@ using Agents
 using GlobalSensitivity
 using Distributions: Uniform
 using Random
+using ProgressMeter
 
 include("./simspec.jl")
 
@@ -118,11 +119,12 @@ function outputs(pars)
              max(ratio_children(model),1e-3) ]
 end
 
-# TODO , parallelization requires the following API
+
+# TODO , parallelization requires the following API, executable when batch = true
 function outputs(pmatrix::Matrix{Float64})
     @assert size(pmatrix)[1] == length(ACTIVEPARS)
     res = zeros(4,size(pmatrix)[2])
-    for i in 1 : size(pmatrix)[2]
+    @showprogress 1 "Evaluating..." for i in 1 : size(pmatrix)[2]
         res[:,i] = outputs(pmatrix[:,i])
     end
     return res
