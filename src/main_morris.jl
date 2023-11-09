@@ -171,7 +171,7 @@ As expected,
 =#
 
 # Visualize the result w.r.t. the variable mean_living_age
-scatter(log.(res.means_star[2,:]), res.variances[2,:],
+scatter(log.(morrisInd.means_star[2,:]), morrisInd.variances[2,:],
     series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
     label="(log(mean*),sigma)")
 =#
