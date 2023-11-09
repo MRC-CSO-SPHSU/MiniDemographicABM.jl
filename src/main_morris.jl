@@ -12,6 +12,7 @@ using GlobalSensitivity
 using Distributions: Uniform
 using Random
 using ProgressMeter
+using Base.Threads
 
 include("./simspec.jl")
 
@@ -83,15 +84,15 @@ end
 
 const CLOCK = Monthly
 const STARTTIME = 1951
-const NUMSTEPS = 12 * 10  # 100 year
-const INITIALPOP = 10000
+const NUMSTEPS = 12 * 100  # 100 year
+const INITIALPOP = 3000
 const SEEDNUM = 1
 SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
 
 function outputs(pars)
-    # global SIMCNT += 1
-    # SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
+    #global SIMCNT += 1
+    #SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
     #global LASTPAR = pars
     # @assert length(pars) == length(ACTIVEPARS)
     if length(pars) != length(ACTIVEPARS)
@@ -119,12 +120,12 @@ function outputs(pars)
              max(ratio_children(model),1e-3) ]
 end
 
-
 # TODO , parallelization requires the following API, executable when batch = true
 function outputs(pmatrix::Matrix{Float64})
     @assert size(pmatrix)[1] == length(ACTIVEPARS)
     res = zeros(4,size(pmatrix)[2])
-    @showprogress 1 "Evaluating..." for i in 1 : size(pmatrix)[2]
+    # @showprogress 1 "Evaluating..."
+    @threads for i in 1 : size(pmatrix)[2]
         res[:,i] = outputs(pmatrix[:,i])
     end
     return res
