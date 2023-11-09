@@ -152,7 +152,7 @@ ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 # cf. GlobalSensitivity.jl documnetation for documentation of the Morris method arguments
 @time morrisInd = gsa(outputs,
             Morris(relative_scale=true, num_trajectory=20, total_num_trajectory=500),
-            [ [lbs[i],ubs[i]] for i in 1:length(ubs) ])
+            [ [lbs[i],ubs[i]] for i in 1:length(ubs) ],
             batch = true) # for parallelization
 
 #=
