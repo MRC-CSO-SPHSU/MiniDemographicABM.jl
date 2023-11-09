@@ -85,7 +85,7 @@ end
 const CLOCK = Monthly
 const STARTTIME = 1951
 const NUMSTEPS = 12 * 100  # 100 year
-const INITIALPOP = 3000
+const INITIALPOP = 10000
 const SEEDNUM = 1
 SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
@@ -124,9 +124,10 @@ end
 function outputs(pmatrix::Matrix{Float64})
     @assert size(pmatrix)[1] == length(ACTIVEPARS)
     res = zeros(4,size(pmatrix)[2])
-    # @showprogress 1 "Evaluating..."
+    pr = Progress(size(pmatrix)[2];desc= "Evaluating ...")
     @threads for i in 1 : size(pmatrix)[2]
         res[:,i] = outputs(pmatrix[:,i])
+        next!(pr)
     end
     return res
 end
@@ -147,12 +148,12 @@ end
 lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
 ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 
-#=
+
 # cf. GlobalSensitivity.jl documnetation for documentation of the Morris method arguments
 @time morrisInd = gsa(outputs,
-            Morris(relative_scale=true, num_trajectory=10, total_num_trajectory=200),
+            Morris(relative_scale=true, num_trajectory=20, total_num_trajectory=500),
             [ [lbs[i],ubs[i]] for i in 1:length(ubs) ])
-            # batch = true) for parallelization
+            batch = true) # for parallelization
 
 #=
 Results regarding the output mean_living_age can be accessed via
