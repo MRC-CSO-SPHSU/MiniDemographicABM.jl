@@ -47,7 +47,7 @@ function _declare_population!(model,numTicksYear,initialPop)
     agedist = floor.(Int,abs.(rand(dist,initialPop)))
     # Create population with agedist
     for a in agedist
-        person = Person(nextid(model),UNDEFINED_HOUSE,random_gender(),
+        person = Person(nextid(model),undefined_house(),random_gender(),
                         a // numTicksYear)
         add_agent_pos!(person,model)
     end
