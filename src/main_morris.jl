@@ -83,15 +83,15 @@ end
 
 const CLOCK = Monthly
 const STARTTIME = 1951
-const NUMSTEPS = 12 * 100  # 100 year
-const INITIALPOP = 3000
+const NUMSTEPS = 12 * 10  # 100 year
+const INITIALPOP = 10000
 const SEEDNUM = 1
 SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
 
 function outputs(pars)
-    global SIMCNT += 1
-    SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
+    # global SIMCNT += 1
+    # SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
     #global LASTPAR = pars
     # @assert length(pars) == length(ACTIVEPARS)
     if length(pars) != length(ACTIVEPARS)
@@ -149,7 +149,7 @@ ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 #=
 # cf. GlobalSensitivity.jl documnetation for documentation of the Morris method arguments
 @time morrisInd = gsa(outputs,
-            Morris(relative_scale=true, num_trajectory=10, total_num_trajectories=200),
+            Morris(relative_scale=true, num_trajectory=10, total_num_trajectory=200),
             [ [lbs[i],ubs[i]] for i in 1:length(ubs) ])
             # batch = true) for parallelization
 
