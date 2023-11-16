@@ -85,7 +85,7 @@ end
 const CLOCK = Monthly
 const STARTTIME = 1951
 const NUMSTEPS = 12 * 100  # 100 year
-const INITIALPOP = 10000
+const INITIALPOP = 3000
 const SEEDNUM = 1
 SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
@@ -105,6 +105,7 @@ function outputs(pars)
     properties = DemographicABMProp{CLOCK}(starttime = STARTTIME,
         initialPop = INITIALPOP,
         seednum = SEEDNUM)
+    SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(SEEDNUM)
     for (i,p) in enumerate(pars)
         set_par_value!(properties,ACTIVEPARS[i],p)
     end
@@ -148,6 +149,7 @@ end
 lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
 ubs = [ ap.upperbound for ap in ACTIVEPARS ]
 
+SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(SEEDNUM)
 
 # cf. GlobalSensitivity.jl documnetation for documentation of the Morris method arguments
 @time morrisInd = gsa(outputs,
@@ -174,7 +176,7 @@ As expected,
 scatter(log.(morrisInd.means_star[2,:]), morrisInd.variances[2,:],
     series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
     label="(log(mean*),sigma)")
-=#
+
 
 #=
 To compute sobol indices, this can be done as follows:
