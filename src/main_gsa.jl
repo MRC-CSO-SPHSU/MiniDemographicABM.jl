@@ -176,16 +176,13 @@ function outputs(pmatrix::Matrix{Float64})
     return res
 end
 
-####################################
-# Step IV - generate parameter sample
-####################################
-# Given the set of selected active parameters, their lower and upper bounds,
-#  generate a sample parameter set using a uniform distribution / just for testing
+###################################################
+# Step IV - Wrapper for GlobalSensitivty.jl methods
+###################################################
 
-# TODO .. this is left to the default conducted by the method implementation below
 
 ########################################
-# Step V.1 - API for GSA using Morris method
+# Step IV.1 - API for GSA using Morris method
 #########################################
 
 function _solve(pr::MorrisProblem, f, lbs, ubs;
@@ -207,6 +204,11 @@ end
 solve(pr::MorrisProblem, f, actpars::Vector{ActiveParameter{Float64}};
     batch = false, seednum = 0, kwargs...)  =
         _solve(pr,f,actpars;batch,seednum,kwargs...)
+
+
+#########################################################
+# Step IV - Documentation for execution and visualization
+#########################################################
 
 #=
 how to execute and visualize:
