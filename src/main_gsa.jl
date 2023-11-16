@@ -2,6 +2,9 @@
 Run this script from shell as
 #  julia <script-name.jl>
 
+with multi-threading
+#  julia --threads 8 <script-name.jl>
+
 or within REPL
 
 julia> include("script-name.jl")
@@ -15,6 +18,50 @@ using ProgressMeter
 using Base.Threads
 
 include("./simspec.jl")
+
+
+#=
+#############################################
+# Step 0 - which computation task is desired
+#############################################
+=#
+
+abstract type ComputationProblem end
+abstract type SAProblem <: ComputationProblem end
+abstract type GSAProblem <: SAProblem end
+abstract type LSAProblem <: SAProblem end
+
+struct MorrisProblem <: GSAProblem end
+struct SobolProblem <: GSAProblem end
+
+notimplemented(prob::ComputationProblem) = error("$(typeof(pr)) not implemented")
+
+_solve(prob::ComputationProblem, f, lbs, ubs;
+    batch, seednum, kwargs...) = notimplemented(pr)
+
+function _solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{Float64}};
+    batch, seednum, kwargs...)
+    lbs = [ ap.lowerbound for ap in actpars ]
+    ubs = [ ap.upperbound for ap in actpars ]
+    for i in 1:length(ubs)
+        @assert lbs[i] < ubs[i]
+    end
+    global SEEDNUM = seednum
+    SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(SEEDNUM)
+    empty!(ACTIVEPARS)
+    for ap in actpars
+        push!(ACTIVEPARS,ap)
+    end
+    return _solve(prob, f, lbs, ubs; batch, seednum, kwargs...)
+end
+
+solve(prob::ComputationProblem,
+    f,
+    actpars::Vector{ActiveParameter{Float64}};
+    batch = false,   # for parallelization
+    seednum = 0  ,   # for random number generation, 0 : totally random
+    kwargs...) =     # method specific keyword arguments
+        _solve(prob,f,actpars;batch,seednum,kwargs...)
 
 #=
 ###########################################
@@ -36,6 +83,7 @@ via the calls
 # cf. /types/activePars.jl for definition of the type active parameters
 
 
+# Potential candidates for parameters w.r.t. which analysis is sought
 const startMarriedRate = ActiveParameter{Float64}(0.25,0.9,:startMarriedRate)
 const baseDieRate = ActiveParameter{Float64}(0.00005,0.00015,:baseDieRate)
 const femaleAgeDieRate = ActiveParameter{Float64}(0.0001,0.0003,:femaleAgeDieRate)
@@ -45,8 +93,11 @@ const maleAgeScaling = ActiveParameter{Float64}(14.0,15.0,:maleAgeScaling)
 const basicDivorceRate = ActiveParameter{Float64}(0.01,0.09,:basicDivorceRate)
 const basicMaleMarriageRate = ActiveParameter{Float64}(0.1,0.9,:basicMaleMarriageRate)
 
-const ACTIVEPARS = [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeScaling,
-    maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ]
+# Global variable to be accessed by a typical analysis
+const ACTIVEPARS::Vector{ActiveParameter{Float64}} = []
+# An example choice:
+#   [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeScaling,
+#     maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ]
 
 ##################################
 # Step III - Input/Output function
@@ -91,25 +142,17 @@ SIMCNT::Int = 0
 LASTPAR::Vector{Float64} = []
 
 function outputs(pars)
-    #global SIMCNT += 1
-    #SIMCNT % 10 == 0 ? println("simulation # $(SIMCNT) ") : nothing
-    #global LASTPAR = pars
-    # @assert length(pars) == length(ACTIVEPARS)
-    if length(pars) != length(ACTIVEPARS)
-        @show size(pars)
-        error()
-    end
-    for (i,p) in enumerate(pars)
-        @assert ACTIVEPARS[i].lowerbound <= p <= ACTIVEPARS[i].upperbound
-    end
+    #global SIMCNT += 1  # does not work with multi-threading
+    @assert length(pars) == length(ACTIVEPARS)
     properties = DemographicABMProp{CLOCK}(starttime = STARTTIME,
         initialPop = INITIALPOP,
         seednum = SEEDNUM)
     SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(SEEDNUM)
     for (i,p) in enumerate(pars)
+        @assert ACTIVEPARS[i].lowerbound <= p <= ACTIVEPARS[i].upperbound
         set_par_value!(properties,ACTIVEPARS[i],p)
     end
-    model = declare_initialized_UKmodel(Monthly,properties)
+    model = declare_initialized_UKmodel(CLOCK,properties)
     run!(model,agent_steps!,model_steps!,NUMSTEPS)
     if num_living(model) == 0
         @warn "no living people"
@@ -142,20 +185,51 @@ end
 # TODO .. this is left to the default conducted by the method implementation below
 
 ########################################
-# Step V - Perform SA using Morris method
+# Step V.1 - API for GSA using Morris method
 #########################################
 
+function _solve(pr::MorrisProblem, f, lbs, ubs;
+    seednum = 0,  # totally random
+    batch = true,
+    relative_scale = false,
+    num_trajectory = 10,
+    total_num_trajectory = 5 * num_trajectory,
+    len_design_mat = 10)
 
-lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
-ubs = [ ap.upperbound for ap in ACTIVEPARS ]
+    @time morrisInd = gsa(f,
+        Morris(;relative_scale, num_trajectory, total_num_trajectory, len_design_mat),
+        [ [lbs[i],ubs[i]] for i in 1:length(ubs) ];
+        batch)
+    return morrisInd
 
-SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(SEEDNUM)
+end
 
-# cf. GlobalSensitivity.jl documnetation for documentation of the Morris method arguments
-@time morrisInd = gsa(outputs,
-            Morris(relative_scale=true, num_trajectory=20, total_num_trajectory=500),
-            [ [lbs[i],ubs[i]] for i in 1:length(ubs) ],
-            batch = true) # for parallelization
+solve(pr::MorrisProblem, f, actpars::Vector{ActiveParameter{Float64}};
+    batch = false, seednum = 0, kwargs...)  =
+        _solve(pr,f,actpars;batch,seednum,kwargs...)
+
+#=
+how to execute and visualize:
+
+model = ...
+# cf. GlobalSensitivity.jl documnetation for Morris method arguments
+morrisInd = solve(MorrisProb(), model,
+    [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeScaling,
+    maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ] ;
+    batch = true , # for parallelization
+    seednum = 1,   # fully determinstic computation
+    relative_scale = true,
+    num_trajectory = 20,
+    total_num_trajectory = 500)
+
+
+# Visualize the result w.r.t. the variable mean_living_age
+scatter(log.(morrisInd.means_star[2,:]), morrisInd.variances[2,:],
+    series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
+    label="(log(mean*),sigma)")
+
+=#
+
 
 #=
 Results regarding the output mean_living_age can be accessed via
@@ -172,10 +246,7 @@ As expected,
     - maleAgeScaling, femaleAgeScaling
 =#
 
-# Visualize the result w.r.t. the variable mean_living_age
-scatter(log.(morrisInd.means_star[2,:]), morrisInd.variances[2,:],
-    series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
-    label="(log(mean*),sigma)")
+
 
 
 #=
