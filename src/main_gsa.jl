@@ -67,7 +67,7 @@ solve(prob::ComputationProblem,
 #    batch = false,   # for parallelization
 #    seednum = 0  ,   # for random number generation, 0 : totally random
     kwargs...) =     # method specific keyword arguments
-        _solve(prob,f,actpars;batch,seednum,kwargs...)
+        _solve(prob,f,actpars;kwargs...)
 
 #=
 ###########################################
@@ -187,8 +187,32 @@ function _solve(pr::MorrisProblem, f, lbs, ubs;
     return morrisInd
 end
 
-solve(pr::MorrisProblem, f, actpars::Vector{ActiveParameter{Float64}};kwargs...)  =
+#=
+solve(pr::ComputationProblem, f, actpars::Vector{ActiveParameter{Float64}};kwargs...)  =
     _solve(pr,f,actpars; kwargs...)
+=#
+
+########################################
+# Step V.2 - API for GSA using Sobol method
+#########################################
+
+
+
+
+#=
+To compute sobol indices, this can be done as follows:
+
+either
+sobolInd = gsa(outputs, Sobol(), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ], samples = 100)
+
+or
+
+A = sample(100,ACTIVEPARS,SobolSample()) ;
+B = sample(100,ACTIVEPARS,SobolSample()) ;
+
+sobolInd - gsa(outputs, Sobol(), A, B)
+
+=#
 
 
 #########################################################
@@ -217,10 +241,6 @@ scatter(log.(morrisInd.means_star[2,:]), morrisInd.variances[2,:],
     series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
     label="(log(mean*),sigma)")
 
-=#
-
-
-#=
 Results regarding the output mean_living_age can be accessed via
 
 res.means[2,i] : the overall influence of the i-th parameter on the output
@@ -233,22 +253,4 @@ As expected,
 
 * the least influentiable
     - maleAgeScaling, femaleAgeScaling
-=#
-
-
-
-
-#=
-To compute sobol indices, this can be done as follows:
-
-either
-sobolInd = gsa(outputs, Sobol(), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ], samples = 100)
-
-or
-
-A = sample(100,ACTIVEPARS,SobolSample()) ;
-B = sample(100,ACTIVEPARS,SobolSample()) ;
-
-sobolInd - gsa(outputs, Sobol(), A, B)
-
 =#
