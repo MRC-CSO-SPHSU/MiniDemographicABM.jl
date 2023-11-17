@@ -187,16 +187,19 @@ function _solve(pr::MorrisProblem, f, lbs, ubs;
     return morrisInd
 end
 
-#=
-solve(pr::ComputationProblem, f, actpars::Vector{ActiveParameter{Float64}};kwargs...)  =
-    _solve(pr,f,actpars; kwargs...)
-=#
 
 ########################################
 # Step V.2 - API for GSA using Sobol method
 #########################################
 
 
+function _solve(pr::SobolProblem, f, lbs, ubs;
+    seednum = 0,  # totally random
+    batch = true,
+    samples = 10)
+
+    sobolInd = gsa(f, Sobol(), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ]; batch, samples)
+end
 
 
 #=
