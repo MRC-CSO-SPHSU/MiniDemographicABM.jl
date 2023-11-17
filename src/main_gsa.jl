@@ -10,12 +10,11 @@ or within REPL
 julia> include("script-name.jl")
 """
 
-using Agents
+#using Agents
 using GlobalSensitivity
-using Distributions: Uniform
+#using Distributions: Uniform
 using Random
-using ProgressMeter
-using Base.Threads
+
 
 include("./simspec.jl")
 
@@ -133,48 +132,61 @@ end
 =#
 # const _MORRIS = ABMSAProb
 
-const CLOCK = Monthly
-const STARTTIME = 1951
-const NUMSTEPS = 12 * 100  # 100 year
-const INITIALPOP = 3000
-const SEEDNUM = 1
-SIMCNT::Int = 0
-LASTPAR::Vector{Float64} = []
+module _AnalysisFunc
+    using ProgressMeter
+    using Base.Threads
+    using Random
+    using ..Main: Monthly, ACTIVEPARS
+    using ..Main: DemographicABMProp
+    using ..Main: set_par_value!, declare_initialized_UKmodel, run!, ratio_singles
 
-function outputs(pars)
-    #global SIMCNT += 1  # does not work with multi-threading
-    @assert length(pars) == length(ACTIVEPARS)
-    properties = DemographicABMProp{CLOCK}(starttime = STARTTIME,
-        initialPop = INITIALPOP,
-        seednum = SEEDNUM)
-    SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(SEEDNUM)
-    for (i,p) in enumerate(pars)
-        @assert ACTIVEPARS[i].lowerbound <= p <= ACTIVEPARS[i].upperbound
-        set_par_value!(properties,ACTIVEPARS[i],p)
-    end
-    model = declare_initialized_UKmodel(CLOCK,properties)
-    run!(model,agent_steps!,model_steps!,NUMSTEPS)
-    if num_living(model) == 0
-        @warn "no living people"
-        return [ 1e-3, 100.0, 0.5, 1e-3]
-    end
-    return [ ratio_singles(model),
-             float(mean_living_age(model)) ,
-             ratio_males(model),
-             max(ratio_children(model),1e-3) ]
-end
+    const CLOCK = Monthly
+    const STARTTIME = 1951
+    const NUMSTEPS = 12 * 100  # 100 year
+    const INITIALPOP = 3000
+    const SEEDNUM = 1
+    SIMCNT::Int = 0
+    # LASTPAR::Vector{Float64} = [] # for debugging purpose
 
-# TODO , parallelization requires the following API, executable when batch = true
-function outputs(pmatrix::Matrix{Float64})
-    @assert size(pmatrix)[1] == length(ACTIVEPARS)
-    res = zeros(4,size(pmatrix)[2])
-    pr = Progress(size(pmatrix)[2];desc= "Evaluating ...")
-    @threads for i in 1 : size(pmatrix)[2]
-        res[:,i] = outputs(pmatrix[:,i])
-        next!(pr)
+    function outputs(pars)
+        #global SIMCNT += 1  # does not work with multi-threading
+        @show ACTIVEPARS
+        @show size(pars)
+        @assert length(pars) == length(ACTIVEPARS)
+        properties = DemographicABMProp{CLOCK}(starttime = STARTTIME,
+            initialPop = INITIALPOP,
+            seednum = SEEDNUM)
+        SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(SEEDNUM)
+        for (i,p) in enumerate(pars)
+            @assert ACTIVEPARS[i].lowerbound <= p <= ACTIVEPARS[i].upperbound
+            set_par_value!(properties,ACTIVEPARS[i],p)
+        end
+        model = declare_initialized_UKmodel(CLOCK,properties)
+        run!(model,agent_steps!,model_steps!,NUMSTEPS)
+        if num_living(model) == 0
+            @warn "no living people"
+            return [ 1e-3, 100.0, 0.5, 1e-3]
+        end
+        return [ ratio_singles(model),
+                float(mean_living_age(model)) ,
+                ratio_males(model),
+                max(ratio_children(model),1e-3) ]
     end
-    return res
-end
+
+    # TODO , parallelization requires the following API, executable when batch = true
+    function outputs(pmatrix::Matrix{Float64})
+        @assert size(pmatrix)[1] == length(ACTIVEPARS)
+        res = zeros(4,size(pmatrix)[2])
+        pr = Progress(size(pmatrix)[2];desc= "Evaluating ...")
+        @threads for i in 1 : size(pmatrix)[2]
+            res[:,i] = outputs(pmatrix[:,i])
+            next!(pr)
+        end
+        return res
+    end
+
+end # _AnalysisFunc
+
 
 ###################################################
 # Step IV - Wrapper for GlobalSensitivty.jl methods
