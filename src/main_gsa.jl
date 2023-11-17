@@ -10,18 +10,18 @@ or within REPL
 julia> include("script-name.jl")
 """
 
-#using Agents
 using GlobalSensitivity
-#using Distributions: Uniform
 using Random
-
+using ProgressMeter
+using Base.Threads
+using Random
 
 include("./simspec.jl")
 
 
 #=
 #############################################
-# Step 0 - which computation task is desired
+# Step 1 - which computation task is desired
 #############################################
 =#
 
@@ -36,49 +36,58 @@ struct SobolProblem <: GSAProblem end
 notimplemented(prob::ComputationProblem) = error("$(typeof(pr)) not implemented")
 
 _solve(prob::ComputationProblem, f, lbs, ubs;
-    batch, seednum, kwargs...) = notimplemented(pr)
+    kwargs...) = notimplemented(pr)
 
 function _solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{Float64}};
-    batch, seednum, kwargs...)
+    clock, initialpop, numsteps, seednum, starttime, kwargs...)
+
+    global _CLOCK = clock
+    global _INITIALPOP = initialpop
+    global _NUMSTEPS = numsteps
+    global _STARTTIME = starttime
+    global _SEEDNUM = seednum
+    _SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(_SEEDNUM)
+
     lbs = [ ap.lowerbound for ap in actpars ]
     ubs = [ ap.upperbound for ap in actpars ]
     for i in 1:length(ubs)
         @assert lbs[i] < ubs[i]
     end
-    global SEEDNUM = seednum
-    SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(SEEDNUM)
-    empty!(ACTIVEPARS)
+
+    empty!(_ACTIVEPARS)
     for ap in actpars
-        push!(ACTIVEPARS,ap)
+        push!(_ACTIVEPARS,ap)
     end
-    return _solve(prob, f, lbs, ubs; batch, seednum, kwargs...)
+    return _solve(prob, f, lbs, ubs; kwargs...)
 end
 
 solve(prob::ComputationProblem,
     f,
     actpars::Vector{ActiveParameter{Float64}};
-    batch = false,   # for parallelization
-    seednum = 0  ,   # for random number generation, 0 : totally random
+#    batch = false,   # for parallelization
+#    seednum = 0  ,   # for random number generation, 0 : totally random
     kwargs...) =     # method specific keyword arguments
         _solve(prob,f,actpars;batch,seednum,kwargs...)
 
 #=
 ###########################################
-# Step I - model and simulation definitions
+# Step II - model and simulation definitions
 ###########################################
+For defining simulation-based functions:
 model declaration, initializtaion and stepping definitions can be accessed in simspec.jl
 via the calls
    declare_initialized_UKModel(..)
    agent_steps()
    model_steps()
 
-   How to execute an ABM simulation based on Agents.jl, see main.jl
+   How to execute an ABM simulation based on Agents.jl, see jl
 =#
 
-#############################
-# Step II - active parameters
-#############################
-# Define active parameters w.r.t. which SA is sought
+
+##############################
+# Step III - active parameters
+##############################
+# Define potential active parameters w.r.t. which SA is sought
 # cf. /types/activePars.jl for definition of the type active parameters
 
 
@@ -92,14 +101,10 @@ const maleAgeScaling = ActiveParameter{Float64}(14.0,15.0,:maleAgeScaling)
 const basicDivorceRate = ActiveParameter{Float64}(0.01,0.09,:basicDivorceRate)
 const basicMaleMarriageRate = ActiveParameter{Float64}(0.1,0.9,:basicMaleMarriageRate)
 
-# Global variable to be accessed by a typical analysis
-const ACTIVEPARS::Vector{ActiveParameter{Float64}} = []
-# An example choice:
-#   [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeScaling,
-#     maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ]
+
 
 ##################################
-# Step III - Input/Output function
+# Step IV - Input/Output function
 ##################################
 ## Define a simple simulation-based function of the form y = f(x)
 ##  outputs : vector of model outputs
@@ -113,88 +118,58 @@ const ACTIVEPARS::Vector{ActiveParameter{Float64}} = []
 ##  using the following global constants below
 ##
 
-#=
-# TODO abstract the following as a task / problem
-# For example
+const _CLOCK = Monthly
+const _STARTTIME = 1951
+const _NUMSTEPS = 12 * 100  # 100 year
+const _INITIALPOP = 3000
+const _SEEDNUM = 1
 
-abstract type CompProblem end
+# Global variable to be accessed by a typical analysis
+const _ACTIVEPARS::Vector{ActiveParameter{Float64}} = []
 
-mutable struct type ABMSAProb <: CompProblem
-    apars::Vector{ActiveParameter}
-    fixedpars::Dict{Symbol,Any}
-    simpars::Dict{Symbol,Any}
-    simcnt::Int
-    lastpar::Vector{Float64}
-
-    ABMSAProb(aps::vector{ActivePars}, mpars, spars) =
-        new(aps, spars, mpars, 0, zeros(length(aps)))
+function fabm(pars)
+    #global SIMCNT += 1  # does not work with multi-threading
+    @assert length(pars) == length(_ACTIVEPARS)
+    properties = DemographicABMProp{_CLOCK}(starttime = _STARTTIME,
+        initialPop = _INITIALPOP,
+        seednum = _SEEDNUM)
+    _SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(_SEEDNUM)
+    for (i,p) in enumerate(pars)
+        @assert _ACTIVEPARS[i].lowerbound <= p <= _ACTIVEPARS[i].upperbound
+        set_par_value!(properties,_ACTIVEPARS[i],p)
+    end
+    model = declare_initialized_UKmodel(_CLOCK,properties)
+    run!(model,agent_steps!,model_steps!,_NUMSTEPS)
+    if num_living(model) == 0
+        @warn "no living people"
+        return [ 1e-3, 100.0, 0.5, 1e-3]
+    end
+    return [ ratio_singles(model),
+             float(mean_living_age(model)) ,
+             ratio_males(model),
+             max(ratio_children(model),1e-3) ]
 end
-=#
-# const _MORRIS = ABMSAProb
 
-module _AnalysisFunc
-    using ProgressMeter
-    using Base.Threads
-    using Random
-    using ..Main: Monthly, ACTIVEPARS
-    using ..Main: DemographicABMProp
-    using ..Main: set_par_value!, declare_initialized_UKmodel, run!, ratio_singles
-
-    const CLOCK = Monthly
-    const STARTTIME = 1951
-    const NUMSTEPS = 12 * 100  # 100 year
-    const INITIALPOP = 3000
-    const SEEDNUM = 1
-    SIMCNT::Int = 0
-    # LASTPAR::Vector{Float64} = [] # for debugging purpose
-
-    function outputs(pars)
-        #global SIMCNT += 1  # does not work with multi-threading
-        @show ACTIVEPARS
-        @show size(pars)
-        @assert length(pars) == length(ACTIVEPARS)
-        properties = DemographicABMProp{CLOCK}(starttime = STARTTIME,
-            initialPop = INITIALPOP,
-            seednum = SEEDNUM)
-        SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(SEEDNUM)
-        for (i,p) in enumerate(pars)
-            @assert ACTIVEPARS[i].lowerbound <= p <= ACTIVEPARS[i].upperbound
-            set_par_value!(properties,ACTIVEPARS[i],p)
-        end
-        model = declare_initialized_UKmodel(CLOCK,properties)
-        run!(model,agent_steps!,model_steps!,NUMSTEPS)
-        if num_living(model) == 0
-            @warn "no living people"
-            return [ 1e-3, 100.0, 0.5, 1e-3]
-        end
-        return [ ratio_singles(model),
-                float(mean_living_age(model)) ,
-                ratio_males(model),
-                max(ratio_children(model),1e-3) ]
+function fabm(pmatrix::Matrix{Float64})
+    @assert size(pmatrix)[1] == length(_ACTIVEPARS)
+    res = zeros(4,size(pmatrix)[2])
+    pr = Progress(size(pmatrix)[2];desc= "Evaluating ...")
+    @threads for i in 1 : size(pmatrix)[2]
+        res[:,i] = fabm(pmatrix[:,i])
+        next!(pr)
     end
+    return res
+end
 
-    # TODO , parallelization requires the following API, executable when batch = true
-    function outputs(pmatrix::Matrix{Float64})
-        @assert size(pmatrix)[1] == length(ACTIVEPARS)
-        res = zeros(4,size(pmatrix)[2])
-        pr = Progress(size(pmatrix)[2];desc= "Evaluating ...")
-        @threads for i in 1 : size(pmatrix)[2]
-            res[:,i] = outputs(pmatrix[:,i])
-            next!(pr)
-        end
-        return res
-    end
-
-end # _AnalysisFunc
 
 
 ###################################################
-# Step IV - Wrapper for GlobalSensitivty.jl methods
+# Step V - Wrapper for GlobalSensitivty.jl methods
 ###################################################
 
 
 ########################################
-# Step IV.1 - API for GSA using Morris method
+# Step V.1 - API for GSA using Morris method
 #########################################
 
 function _solve(pr::MorrisProblem, f, lbs, ubs;
@@ -210,32 +185,32 @@ function _solve(pr::MorrisProblem, f, lbs, ubs;
         [ [lbs[i],ubs[i]] for i in 1:length(ubs) ];
         batch)
     return morrisInd
-
 end
 
-solve(pr::MorrisProblem, f, actpars::Vector{ActiveParameter{Float64}};
-    batch = false, seednum = 0, kwargs...)  =
-        _solve(pr,f,actpars;batch,seednum,kwargs...)
+solve(pr::MorrisProblem, f, actpars::Vector{ActiveParameter{Float64}};kwargs...)  =
+    _solve(pr,f,actpars; kwargs...)
 
 
 #########################################################
-# Step V - Documentation for execution and visualization
+# Step VI - Documentation for execution and visualization
 #########################################################
 
 #=
 how to execute and visualize:
 
-model = ...
 # cf. GlobalSensitivity.jl documnetation for Morris method arguments
-morrisInd = solve(MorrisProb(), model,
-    [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeScaling,
-    maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ] ;
-    batch = true , # for parallelization
-    seednum = 1,   # fully determinstic computation
-    relative_scale = true,
-    num_trajectory = 20,
-    total_num_trajectory = 500)
-
+morrisInd = solve(MorrisProblem(),
+          fabm,
+          [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeScaling,maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ];
+           clock = Monthly,
+           initialpop = 3000,
+           numsteps = 100 * 12,
+           starttime = 1951,
+           batch = true , # for parallelization
+           seednum = 1,
+           relative_scale = true,
+           num_trajectory = 10,
+           total_num_trajectory = 500)
 
 # Visualize the result w.r.t. the variable mean_living_age
 scatter(log.(morrisInd.means_star[2,:]), morrisInd.variances[2,:],
