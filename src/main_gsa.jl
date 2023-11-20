@@ -18,10 +18,67 @@ using Random
 
 include("./simspec.jl")
 
+#=
+#############################################
+# Step 1 - Global variables
+#############################################
+=#
+
+const _CLOCK = Monthly
+const _STARTTIME = 1951
+const _NUMSTEPS = 12 * 100  # 100 year
+const _INITIALPOP = 3000
+const _SEEDNUM = 1
+
+# Global variable to be accessed by a typical analysis
+const _ACTIVEPARS::Vector{ActiveParameter{Float64}} = []
+
+function _reset_ACTIVEPARS!(actpars::Vector{ActiveParameter{Float64}})
+    empty!(_ACTIVEPARS)
+    for ap in actpars
+        push!(_ACTIVEPARS,ap)
+    end
+    nothing
+end
+
+function _reset_glbvars!(;clock = _CLOCK,
+    initialpop = _INITIALPOP,
+    numsteps = _NUMSTEPS,
+    seednum = _SEEDNUM,
+    starttime = _STARTTIME, kwargs...)
+
+    global _CLOCK = clock
+    global _INITIALPOP = initialpop
+    global _NUMSTEPS = numsteps
+    global _STARTTIME = starttime
+    global _SEEDNUM = seednum
+
+    _SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(_SEEDNUM)
+
+    return nothing
+end
+
+##############################
+# Step II - active parameters
+##############################
+# Define potential active parameters w.r.t. which Analysis is sought
+# cf. /types/activePars.jl for definition of the type active parameters
+
+
+# Potential candidates for parameters w.r.t. which analysis is sought
+const startMarriedRate = ActiveParameter{Float64}(:startMarriedRate,0.25,0.9,0.8)
+const baseDieRate = ActiveParameter{Float64}(:baseDieRate,0.00005,0.00015,0.0001)
+const femaleAgeDieRate = ActiveParameter{Float64}(:femaleAgeDieRate,0.0001,0.0003,0.00019)
+const femaleAgeScaling = ActiveParameter{Float64}(:femaleAgeScaling,15.1,16.1,15.5)
+const maleAgeDieRate = ActiveParameter{Float64}(:maleAgeDieRate,0.0001,0.0003,0.00021)
+const maleAgeScaling = ActiveParameter{Float64}(:maleAgeScaling,13.5,14.5,14.0)
+const basicDivorceRate = ActiveParameter{Float64}(:basicDivorceRate,0.01,0.09,0.06)
+const basicMaleMarriageRate = ActiveParameter{Float64}(:basicMaleMarriageRate,0.1,0.9,0.7)
+
 
 #=
 #############################################
-# Step 1 - which computation task is desired
+# Step III - which computation task is desired
 #############################################
 =#
 
@@ -37,18 +94,10 @@ struct OFATProblem <: LSAProblem end
 
 notimplemented(prob::ComputationProblem) = error("$(typeof(pr)) not implemented")
 
-_solve(prob::ComputationProblem, f, lbs, ubs;
-    kwargs...) = notimplemented(pr)
+_solve(prob::GSAProblem, f, lbs, ubs;kwargs...) = notimplemented(pr)
 
-function _solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{Float64}};
-    clock, initialpop, numsteps, seednum, starttime, kwargs...)
-
-    global _CLOCK = clock
-    global _INITIALPOP = initialpop
-    global _NUMSTEPS = numsteps
-    global _STARTTIME = starttime
-    global _SEEDNUM = seednum
-    _SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(_SEEDNUM)
+# Specialized for GlobalSensitivity.jl
+function _solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{Float64}};kwargs...)
 
     lbs = [ ap.lowerbound for ap in actpars ]
     ubs = [ ap.upperbound for ap in actpars ]
@@ -56,22 +105,22 @@ function _solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{Flo
         @assert lbs[i] < ubs[i]
     end
 
-    empty!(_ACTIVEPARS)
-    for ap in actpars
-        push!(_ACTIVEPARS,ap)
-    end
     return _solve(prob, f, lbs, ubs; kwargs...)
 end
 
-solve(prob::ComputationProblem,
-    f,
-    actpars::Vector{ActiveParameter{Float64}};
-    kwargs...) =     # method specific keyword arguments
-        _solve(prob,f,actpars;kwargs...)
+function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{Float64}};
+    kwargs...)     # method specific keyword arguments
+
+    _reset_glbvars!(;kwargs...)
+    _reset_ACTIVEPARS!(actpars)
+    return _solve(prob,f,actpars;kwargs...)
+end
+
+
 
 #=
 ###########################################
-# Step II - model and simulation definitions
+# Step IV - model and simulation definitions
 ###########################################
 For defining simulation-based functions:
 model declaration, initializtaion and stepping definitions can be accessed in simspec.jl
@@ -80,31 +129,13 @@ via the calls
    agent_steps()
    model_steps()
 
-   How to execute an ABM simulation based on Agents.jl, see jl
+   How to execute an ABM simulation based on Agents.jl, see main.jl
 =#
-
-
-##############################
-# Step III - active parameters
-##############################
-# Define potential active parameters w.r.t. which SA is sought
-# cf. /types/activePars.jl for definition of the type active parameters
-
-
-# Potential candidates for parameters w.r.t. which analysis is sought
-const startMarriedRate = ActiveParameter{Float64}(0.25,0.9,:startMarriedRate)
-const baseDieRate = ActiveParameter{Float64}(0.00005,0.00015,:baseDieRate)
-const femaleAgeDieRate = ActiveParameter{Float64}(0.0001,0.0003,:femaleAgeDieRate)
-const femaleAgeScaling = ActiveParameter{Float64}(15.1,16.0,:femaleAgeScaling)
-const maleAgeDieRate = ActiveParameter{Float64}(0.0001,0.0003,:maleAgeDieRate)
-const maleAgeScaling = ActiveParameter{Float64}(14.0,15.0,:maleAgeScaling)
-const basicDivorceRate = ActiveParameter{Float64}(0.01,0.09,:basicDivorceRate)
-const basicMaleMarriageRate = ActiveParameter{Float64}(0.1,0.9,:basicMaleMarriageRate)
 
 
 
 ##################################
-# Step IV - Input/Output function
+# Step V - Input/Output function
 ##################################
 ## Define a simple simulation-based function of the form y = f(x)
 ##  outputs : vector of model outputs
@@ -117,15 +148,6 @@ const basicMaleMarriageRate = ActiveParameter{Float64}(0.1,0.9,:basicMaleMarriag
 ##
 ##  using the following global constants below
 ##
-
-const _CLOCK = Monthly
-const _STARTTIME = 1951
-const _NUMSTEPS = 12 * 100  # 100 year
-const _INITIALPOP = 3000
-const _SEEDNUM = 1
-
-# Global variable to be accessed by a typical analysis
-const _ACTIVEPARS::Vector{ActiveParameter{Float64}} = []
 
 function fabm(pars)
     #global SIMCNT += 1  # does not work with multi-threading
@@ -152,7 +174,7 @@ end
 
 function fabm(pmatrix::Matrix{Float64})
     @assert size(pmatrix)[1] == length(_ACTIVEPARS)
-    res = zeros(4,size(pmatrix)[2])
+    res = Array{Float64,2}(undef,4,size(pmatrix)[2])
     pr = Progress(size(pmatrix)[2];desc= "Evaluating ...")
     @threads for i in 1 : size(pmatrix)[2]
         res[:,i] = fabm(pmatrix[:,i])
@@ -162,23 +184,22 @@ function fabm(pmatrix::Matrix{Float64})
 end
 
 
-
 ###################################################
-# Step V - Wrapper for GlobalSensitivty.jl methods
+# Step VI - Wrapper for GlobalSensitivty.jl methods
 ###################################################
 
 
 ########################################
-# Step V.1 - API for GSA using Morris method
+# Step VI.1 - API for GSA using Morris method
 #########################################
 
 function _solve(pr::MorrisProblem, f, lbs, ubs;
-    seednum = 0,  # totally random
     batch = true,
     relative_scale = false,
     num_trajectory = 10,
     total_num_trajectory = 5 * num_trajectory,
-    len_design_mat = 10)
+    len_design_mat = 10,
+    kwargs...)
 
     @time morrisInd = gsa(f,
         Morris(;relative_scale, num_trajectory, total_num_trajectory, len_design_mat),
@@ -189,46 +210,17 @@ end
 
 
 ########################################
-# Step V.2 - API for GSA using Sobol method
+# Step VI.2 - API for GSA using Sobol method
 #########################################
 
 
 function _solve(pr::SobolProblem, f, lbs, ubs;
-    seednum = 0,  # totally random
     batch = true,
-    samples = 10)
+    samples = 10,
+    kwargs...)
 
     sobolInd = gsa(f, Sobol(), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ]; batch, samples)
 end
-
-
-########################################
-# Step V.2 - API for LSA using
-#########################################
-
-#=
-"""
-OFAT Result containts:
-- pmatrix a design matrix of size: p x s
-    where p is number of active parameters
-    and s the number of steps
-- y the simulation results of size: n x p x s
-"""
-struct OFATResult
-    pmatrix::Matrix{Float64}
-    y::Array{Float64,3}
-    #function OFATResult(actpars,f,s)
-        # initialize pmatirx and y
-    #end
-end
-
-reshaping for making use of fabm(::Matrix) is like that :
-
-a = [ i + j-1 +  (j-1) * 3  + 3*4* (k-1) for k = 1:z  for j in 1:x for i in 1:y ]
-B = reshape(a,(p * s, n))
-y = fabm(B)
-=#
-
 
 #=
 To compute sobol indices, this can be done as follows:
@@ -241,9 +233,71 @@ or
 A = sample(100,ACTIVEPARS,SobolSample()) ;
 B = sample(100,ACTIVEPARS,SobolSample()) ;
 
-sobolInd - gsa(outputs, Sobol(), A, B)
+sobolInd = gsa(outputs, Sobol(), A, B)
 
 =#
+
+
+########################################
+# Step VI.3 - API for OFAT using
+#########################################
+
+function _compute_ofatp(actpars,pnom,n)
+    pmat = Array{Float64,2}(undef,length(actpars),(n*length(actpars)))
+
+    for i in 1:length(actpars)
+        pmat[i,:] .= pnom[i]
+        lb = actpars[i].lowerbound
+        ub = actpars[i].upperbound
+        for j in 1 + (i-1)*n : i*n
+            pmat[i,j] = lb + ((j-1)%n) * ((ub - lb) / (n - 1))
+        end
+    end
+
+    return pmat
+end
+
+"""
+OFAT Result containts:
+- pmatrix a design matrix of size: p x s
+    where p is number of active parameters
+    and s the number of steps
+- y the simulation results of size: n x p x s
+"""
+struct OFATResult
+
+    pmatrix::Matrix{Float64}
+    pnom::Vector{Float64}
+    y::Matrix{Float64}
+    ynom::Vector{Float64}
+
+    function OFATResult(actpars,f,n)
+        pnom = nominal_values(actpars)
+        pmatrix = _compute_ofatp(actpars,pnom,n)
+        for i in 1:length(actpars)
+            @assert actpars[i] === _ACTIVEPARS[i]
+        end
+        ynom = f(pnom)
+        y = f(pmatrix)
+        #y = reshape(tmp,(length(ynom), length(actpars),n))
+        new(pmatrix,pnom,y,ynom)
+    end
+
+end
+
+_solve(pr::OFATProblem, f, actpars; n=11, kwargs...) = OFATResult(actpars,f,n)
+
+
+#=
+reshaping for making use of fabm(::Matrix) is like that :
+
+a = [ i + j-1 +  (j-1) * 3  + 3*4* (k-1) for k = 1:z  for j in 1:x for i in 1:y ]
+B = reshape(a,(p * s, n))
+y = fabm(B)
+=#
+
+
+
 
 
 #########################################################
@@ -253,10 +307,13 @@ sobolInd - gsa(outputs, Sobol(), A, B)
 #=
 how to execute and visualize:
 
+actpars =
+    [ startMarriedRate, baseDieRate, femaleAgeDieRate, femaleAgeScaling,
+      maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ];
 # cf. GlobalSensitivity.jl documnetation for Morris method arguments
 morrisInd = solve(MorrisProblem(),
           fabm,
-          [ startMarriedRate, baseDieRate, femaleAgeDieRate,femaleAgeScaling,maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ];
+          actpars;
            clock = Monthly,
            initialpop = 3000,
            numsteps = 100 * 12,
