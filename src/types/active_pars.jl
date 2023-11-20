@@ -8,26 +8,25 @@ using QuasiMonteCarlo, Distributions
 import StatsBase: sample
 
 mutable struct ActiveParameter{ValType}
+    name::Symbol
     lowerbound::ValType
     upperbound::ValType
-    name::Symbol
-    function ActiveParameter{ValType}(low,upp,id) where ValType
-        @assert low <= upp
-        new(low,upp,id)
+    nomval::ValType # nominal value
+    function ActiveParameter{ValType}(id,low,upp,nv) where ValType
+        @assert low <= nv <= upp
+        new(id,low,upp,nv)
     end
 end
 
 set_par_value!(model,activePar::ActiveParameter{T},val::T)  where T =
     setfield!(model, activePar.name, val)
 
+nominal_values(actpars::Vector{ActiveParameter{T}}) where T =
+    [ ap.nomval for ap in actpars ]
+
 "produce a sample parameter set via a uniform distributioin from a set of active parameters"
-function sample(apars::Vector{ActiveParameter{T}}) where T
-    pars = zeros(length(apars))
-    for (i,ap) in enumerate(apars)
-        pars[i] =  rand(Uniform(ap.lowerbound,ap.upperbound))
-    end
-    return pars
-end
+sample(apars::Vector{ActiveParameter{T}}) where T =
+    [ rand(Uniform(ap.lowerbound,ap.upperbound)) for ap in apars ]
 
 """
 generate n sample parameters using given sampling algorithm
@@ -35,8 +34,8 @@ possible choices of sampling algorithms include Uniform, GridSample, SobolSample
     FaureSample, LatinHybercubeSample, ..., cf. QuasieMonteCarlo.jl documentation for
     all options.
 """
-function sample(n,apars::Vector{ActiveParameter{T}}, sampleAlg  ) where T
-    lbs = [ ap.lowerbound for ap in ACTIVEPARS ]
-    ubs = [ ap.upperbound for ap in ACTIVEPARS ]
-    return QuasiMonteCarlo.sample(n,lbs,ubs,sampleAlg)
-end
+sample(n,apars::Vector{ActiveParameter{T}}, sampleAlg  ) where T =
+    QuasiMonteCarlo.sample(n,
+        [ ap.lowerbound for ap in apars ],
+        [ ap.upperbound for ap in apars ] ,
+        sampleAlg)
