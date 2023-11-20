@@ -33,6 +33,8 @@ abstract type LSAProblem <: SAProblem end
 struct MorrisProblem <: GSAProblem end
 struct SobolProblem <: GSAProblem end
 
+struct OFATProblem <: LSAProblem end
+
 notimplemented(prob::ComputationProblem) = error("$(typeof(pr)) not implemented")
 
 _solve(prob::ComputationProblem, f, lbs, ubs;
@@ -64,8 +66,6 @@ end
 solve(prob::ComputationProblem,
     f,
     actpars::Vector{ActiveParameter{Float64}};
-#    batch = false,   # for parallelization
-#    seednum = 0  ,   # for random number generation, 0 : totally random
     kwargs...) =     # method specific keyword arguments
         _solve(prob,f,actpars;kwargs...)
 
@@ -200,6 +200,34 @@ function _solve(pr::SobolProblem, f, lbs, ubs;
 
     sobolInd = gsa(f, Sobol(), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ]; batch, samples)
 end
+
+
+########################################
+# Step V.2 - API for LSA using
+#########################################
+
+#=
+"""
+OFAT Result containts:
+- pmatrix a design matrix of size: p x s
+    where p is number of active parameters
+    and s the number of steps
+- y the simulation results of size: n x p x s
+"""
+struct OFATResult
+    pmatrix::Matrix{Float64}
+    y::Array{Float64,3}
+    #function OFATResult(actpars,f,s)
+        # initialize pmatirx and y
+    #end
+end
+
+reshaping for making use of fabm(::Matrix) is like that :
+
+a = [ i + j-1 +  (j-1) * 3  + 3*4* (k-1) for k = 1:z  for j in 1:x for i in 1:y ]
+B = reshape(a,(p * s, n))
+y = fabm(B)
+=#
 
 
 #=
