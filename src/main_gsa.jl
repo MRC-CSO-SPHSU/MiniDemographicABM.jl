@@ -73,7 +73,7 @@ const femaleAgeScaling = ActiveParameter{Float64}(:femaleAgeScaling,15.1,16.1,15
 const maleAgeDieRate = ActiveParameter{Float64}(:maleAgeDieRate,0.0001,0.0003,0.00021)
 const maleAgeScaling = ActiveParameter{Float64}(:maleAgeScaling,13.5,14.5,14.0)
 const basicDivorceRate = ActiveParameter{Float64}(:basicDivorceRate,0.01,0.09,0.06)
-const basicMaleMarriageRate = ActiveParameter{Float64}(:basicMaleMarriageRate,0.1,0.9,0.7)
+const basicMaleMarriageRate = ActiveParameter{Float64}(:basicMaleMarriageRate,0.4,0.9,0.7)
 
 
 #=
@@ -175,9 +175,9 @@ end
 function fabm(pmatrix::Matrix{Float64})
     @assert size(pmatrix)[1] == length(_ACTIVEPARS)
     res = Array{Float64,2}(undef,4,size(pmatrix)[2])
-    pr = Progress(size(pmatrix)[2];desc= "Evaluating ...")
+    pr = Progress(size(pmatrix)[2];desc= "Evaluating f(pmatrix)...")
     @threads for i in 1 : size(pmatrix)[2]
-        res[:,i] = fabm(pmatrix[:,i])
+        @inbounds res[:,i] = fabm(@view pmatrix[:,i])
         next!(pr)
     end
     return res
@@ -189,9 +189,9 @@ end
 ###################################################
 
 
-########################################
+#############################################
 # Step VI.1 - API for GSA using Morris method
-#########################################
+#############################################
 
 function _solve(pr::MorrisProblem, f, lbs, ubs;
     batch = true,
@@ -242,7 +242,7 @@ sobolInd = gsa(outputs, Sobol(), A, B)
 # Step VI.3 - API for OFAT using
 #########################################
 
-function _compute_ofatp(actpars,pnom,n)
+function _compute_ofat_p(actpars,pnom,n)
     pmat = Array{Float64,2}(undef,length(actpars),(n*length(actpars)))
 
     for i in 1:length(actpars)
@@ -255,6 +255,22 @@ function _compute_ofatp(actpars,pnom,n)
     end
 
     return pmat
+end
+
+
+function _compute_ofat_y(f, pmatrix, nruns)
+    pr = Progress(nruns;desc= "Evaluating OFAT ...")
+    global _SEEDNUM
+    seednum = _SEEDNUM
+    ysum = f(pmatrix)
+    for _ in 2:nruns
+        _SEEDNUM += _SEEDNUM == 0 ? 0 : 1
+        y = f(pmatrix)
+        ysum += y
+        next!(pr)
+    end
+    _SEEDNUM = seednum
+    return ysum / nruns
 end
 
 """
@@ -271,21 +287,58 @@ struct OFATResult
     y::Matrix{Float64}
     ynom::Vector{Float64}
 
-    function OFATResult(actpars,f,n)
+    function OFATResult(actpars,f,n,nruns)
         pnom = nominal_values(actpars)
-        pmatrix = _compute_ofatp(actpars,pnom,n)
+        pmatrix = _compute_ofat_p(actpars,pnom,n)
         for i in 1:length(actpars)
             @assert actpars[i] === _ACTIVEPARS[i]
         end
         ynom = f(pnom)
-        y = f(pmatrix)
+        y = _compute_ofat_y(f, pmatrix,nruns)
         #y = reshape(tmp,(length(ynom), length(actpars),n))
         new(pmatrix,pnom,y,ynom)
     end
 
 end
 
-_solve(pr::OFATProblem, f, actpars; n=11, kwargs...) = OFATResult(actpars,f,n)
+"Visualize OFAT results"
+function plot_ofatres(res::OFATResult, actpars, ylabels)
+
+    ny = length(res.ynom)
+    np = length(res.pnom)
+    n = Int(size(res.pmatrix)[2] / length(res.pnom))
+
+    plts = Matrix{Any}(undef, np, ny)
+    @assert np == length(actpars)
+    plabels = [ string(ap.name) for ap in actpars ]
+
+    plbs = [ap.lowerbound for ap in actpars]
+    pubs = [ap.upperbound for ap in actpars]
+
+    ylbs = fill(Inf,ny)
+    yubs = fill(-1.0,ny)
+    for i in 1:ny
+        @inbounds ylbs[i] = min((@view res.y[i,:])...)
+        @inbounds yubs[i] = max((@view res.y[i,:])...)
+    end
+
+    for yind in 1:ny
+        for pind in 1:length(actpars)
+            plts[pind,yind] = plot()
+            scatter!(plts[pind,yind] ,
+                res.pmatrix[pind, (pind-1)*n+1:pind*n] ,
+                res.y[yind,(pind-1)*n+1:pind*n],
+                title = " $(plabels[pind]) vs. $(ylabels[yind]) ")
+            xlims!(plts[pind,yind],plbs[pind],pubs[pind])
+            ylims!(plts[pind,yind],ylbs[yind],yubs[yind])
+        end
+    end
+
+    return plts
+end
+
+_solve(pr::OFATProblem, f, actpars; n=11, nruns, kwargs...) =
+    OFATResult(actpars,f,n,nruns)
 
 
 #=
@@ -301,7 +354,12 @@ y = fabm(B)
 
 
 #########################################################
-# Step VI - Documentation for execution and visualization
+# Step VII - Documentation for execution and visualization
+#########################################################
+
+
+#########################################################
+# Step VII.1 Executing and visualizing Morris Indices
 #########################################################
 
 #=
@@ -341,4 +399,19 @@ As expected,
 
 * the least influentiable
     - maleAgeScaling, femaleAgeScaling
+=#
+
+
+#########################################################
+# Step VII.3 Executing and visualizing OFAT
+#########################################################
+
+#=
+
+actpars = ... ;
+res = solve(OFATProblem(), fabm, actpars; n = 11, initialpop = 3_000, nruns = 10);
+
+ylabels = [ "ratio(singles)" , "mean_livings_age", "ratio(males)", "ratio(children)" ] ;
+plts = plot_ofatres(res,actpars,ylabels) ;
+
 =#
