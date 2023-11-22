@@ -10,7 +10,7 @@ abstract type SAProblem <: ComputationProblem end
 abstract type GSAProblem <: SAProblem end
 abstract type LSAProblem <: SAProblem end
 
-notimplemented(prob::ComputationProblem) = error("$(typeof(pr)) not implemented")
+notimplemented(prob::ComputationProblem) = error("$(typeof(prob)) not implemented")
 
 solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{Float64}};
     kwargs...) = # method specific keyword arguments
