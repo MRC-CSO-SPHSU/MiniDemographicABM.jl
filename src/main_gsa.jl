@@ -24,14 +24,14 @@ include("./simspec.jl")
 #############################################
 =#
 
-const _CLOCK = Monthly
-const _STARTTIME = 1951
-const _NUMSTEPS = 12 * 100  # 100 year
-const _INITIALPOP = 3000
-const _SEEDNUM = 1
+global _CLOCK = Monthly
+global _STARTTIME::Int = 1951
+global _NUMSTEPS::Int = 12 * 100  # 100 year
+global _INITIALPOP::Int = 3000
+global _SEEDNUM::Int = 1
 
 # Global variable to be accessed by a typical analysis
-const _ACTIVEPARS::Vector{ActiveParameter{Float64}} = []
+global _ACTIVEPARS::Vector{ActiveParameter{Float64}} = []
 
 function _reset_ACTIVEPARS!(actpars::Vector{ActiveParameter{Float64}})
     empty!(_ACTIVEPARS)
@@ -150,7 +150,6 @@ via the calls
 ##
 
 function fabm(pars)
-    #global SIMCNT += 1  # does not work with multi-threading
     @assert length(pars) == length(_ACTIVEPARS)
     properties = DemographicABMProp{_CLOCK}(starttime = _STARTTIME,
         initialPop = _INITIALPOP,
@@ -259,17 +258,17 @@ end
 
 
 function _compute_ofat_y(f, pmatrix, nruns)
-    pr = Progress(nruns;desc= "Evaluating OFAT ...")
+    println("Evaluating OFAT with $(nruns) runs ...")
     global _SEEDNUM
-    seednum = _SEEDNUM
+    println("Evaluation with seed # : $(_SEEDNUM) ... ")
     ysum = f(pmatrix)
     for _ in 2:nruns
-        _SEEDNUM += _SEEDNUM == 0 ? 0 : 1
+        global _SEEDNUM += _SEEDNUM == 0 ? 0 : 1
+        println("Evaluation with seed # : $(_SEEDNUM) ... ")
         y = f(pmatrix)
         ysum += y
-        next!(pr)
     end
-    _SEEDNUM = seednum
+    _SEEDNUM -= _SEEDNUM == 0 ? 0 : nruns - 1
     return ysum / nruns
 end
 
@@ -409,9 +408,14 @@ As expected,
 #=
 
 actpars = ... ;
-res = solve(OFATProblem(), fabm, actpars; n = 11, initialpop = 3_000, nruns = 10);
+ofatres = solve(OFATProblem(), fabm, actpars;
+    n = 11,
+    initialpop = 3_000,
+    ...
+    nruns = 10);
 
 ylabels = [ "ratio(singles)" , "mean_livings_age", "ratio(males)", "ratio(children)" ] ;
 plts = plot_ofatres(res,actpars,ylabels) ;
 
+# within REPL, display the plots as:
 =#
