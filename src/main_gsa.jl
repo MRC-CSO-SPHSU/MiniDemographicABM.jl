@@ -73,17 +73,8 @@ const basicMaleMarriageRate = ActiveParameter{Float64}(:basicMaleMarriageRate,0.
 
 
 #=
-#############################################
-# Step III - which computation task is desired
-#############################################
-=#
-
-
-
-
-#=
 ###########################################
-# Step IV - model and simulation definitions
+# Step III - model and simulation definitions
 ###########################################
 For defining simulation-based functions:
 model declaration, initializtaion and stepping definitions can be accessed in simspec.jl
@@ -92,13 +83,13 @@ via the calls
    agent_steps()
    model_steps()
 
-   How to execute an ABM simulation based on Agents.jl, see main.jl
+   How to execute an ABM simulation based on Agents.jl, cf. main.jl
 =#
 
 
 
 ##################################
-# Step V - Input/Output function
+# Step IV - Input/Output function
 ##################################
 ## Define a simple simulation-based function of the form y = f(x)
 ##  outputs : vector of model outputs
@@ -135,7 +126,7 @@ end
 function fabm(pmatrix::Matrix{Float64})
     @assert size(pmatrix)[1] == length(_ACTIVEPARS)
     res = Array{Float64,2}(undef,4,size(pmatrix)[2])
-    pr = Progress(size(pmatrix)[2];desc= "Evaluating f(pmatrix)...")
+    pr = Progress(size(pmatrix)[2];desc= "Evaluating fabm(pmatrix)...")
     @threads for i in 1 : size(pmatrix)[2]
         @inbounds res[:,i] = fabm(@view pmatrix[:,i])
         next!(pr)
@@ -145,7 +136,7 @@ end
 
 
 ###################################################
-# Step VI - Wrapper for GlobalSensitivty.jl methods
+# Step V - fabm-Wrapper for analysis methods
 ###################################################
 
 function solve_fabm(prob::ComputationProblem, actpars::Vector{ActiveParameter{Float64}};
@@ -154,36 +145,18 @@ function solve_fabm(prob::ComputationProblem, actpars::Vector{ActiveParameter{Fl
     _reset_glbvars!(;kwargs...)
     _reset_ACTIVEPARS!(actpars)
     seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
-    return _solve(prob,fabm,actpars;seednum,kwargs...)
+    return solve(prob,fabm,actpars;seednum,kwargs...)
 end
 
 
 
-########################################
-# Step VI.3 - API for OFAT using
-#########################################
-
-
-
-#=
-reshaping for making use of fabm(::Matrix) is like that :
-
-a = [ i + j-1 +  (j-1) * 3  + 3*4* (k-1) for k = 1:z  for j in 1:x for i in 1:y ]
-B = reshape(a,(p * s, n))
-y = fabm(B)
-=#
-
-
-
-
-
 #########################################################
-# Step VII - Documentation for execution and visualization
+# Step VI - Documentation for execution and visualization
 #########################################################
 
 
 #########################################################
-# Step VII.1 Executing and visualizing Morris Indices
+# Step VI.1 Executing and visualizing Morris Indices
 #########################################################
 
 #=
@@ -232,9 +205,10 @@ As expected,
 #=
 
 actpars = ... ;
-ofatres = solve(OFATProblem(), fabm, actpars;
+ofatres = solve_fabm(OFATProblem(), actpars;
     n = 11,
     initialpop = 3_000,
+    seednum = 1,
     ...
     nruns = 10);
 
