@@ -17,3 +17,4 @@ solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{Float64}};
     notimplemented(prob)
 
 include("./methods/gsa.jl")
+include("./methods/ofat.jl")
