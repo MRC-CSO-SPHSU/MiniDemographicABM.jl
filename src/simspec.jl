@@ -8,13 +8,12 @@ include("./spec/stepping.jl")
 #############################################################
 # model declaration, initializtaion and stepping definitions
 #############################################################
-#  Suggested agent_steps and model_steps for Agents.jl
+#  Suggested agent_steps and model_steps for ABM Simulation
 #
 
 
 function declare_initialized_UKmodel(clock,properties)
     model = UKDemographicABM(properties)
-    model.seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(model.seednum)
     declare_population!(model)
     init_kinship!(model) # the kinship among population
     init_housing!(model) # housing assoication to population

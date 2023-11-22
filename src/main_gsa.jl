@@ -29,7 +29,6 @@ global _CLOCK = Monthly
 global _STARTTIME::Int = 1951
 global _NUMSTEPS::Int = 12 * 100  # 100 year
 global _INITIALPOP::Int = 3000
-global _SEEDNUM::Int = 1
 
 # Global variable to be accessed by a typical analysis
 global _ACTIVEPARS::Vector{ActiveParameter{Float64}} = []
@@ -45,16 +44,12 @@ end
 function _reset_glbvars!(;clock = _CLOCK,
     initialpop = _INITIALPOP,
     numsteps = _NUMSTEPS,
-    seednum = _SEEDNUM,
     starttime = _STARTTIME, kwargs...)
 
     global _CLOCK = clock
     global _INITIALPOP = initialpop
     global _NUMSTEPS = numsteps
     global _STARTTIME = starttime
-    global _SEEDNUM = seednum
-
-    _SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(_SEEDNUM)
 
     return nothing
 end
@@ -120,9 +115,7 @@ via the calls
 function fabm(pars)
     @assert length(pars) == length(_ACTIVEPARS)
     properties = DemographicABMProp{_CLOCK}(starttime = _STARTTIME,
-        initialPop = _INITIALPOP,
-        seednum = _SEEDNUM)
-    _SEEDNUM == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(_SEEDNUM)
+        initialPop = _INITIALPOP)
     for (i,p) in enumerate(pars)
         @assert _ACTIVEPARS[i].lowerbound <= p <= _ACTIVEPARS[i].upperbound
         set_par_value!(properties,_ACTIVEPARS[i],p)
@@ -156,10 +149,12 @@ end
 ###################################################
 
 function solve_fabm(prob::ComputationProblem, actpars::Vector{ActiveParameter{Float64}};
+    seednum,
     kwargs...)     # method specific keyword arguments
     _reset_glbvars!(;kwargs...)
     _reset_ACTIVEPARS!(actpars)
-    return _solve(prob,fabm,actpars;kwargs...)
+    seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
+    return _solve(prob,fabm,actpars;seednum,kwargs...)
 end
 
 
@@ -186,18 +181,18 @@ function _compute_ofat_p(actpars,pnom,n)
 end
 
 
-function _compute_ofat_y(f, pmatrix, nruns)
+function _compute_ofat_y(f, pmatrix, nruns, seednum)
     println("Evaluating OFAT with $(nruns) runs ...")
-    global _SEEDNUM
-    println("Evaluation with seed # : $(_SEEDNUM) ... ")
+    println("Evaluation with seed # : $(seednum) ... ")
+    seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
     ysum = f(pmatrix)
     for _ in 2:nruns
-        global _SEEDNUM += _SEEDNUM == 0 ? 0 : 1
-        println("Evaluation with seed # : $(_SEEDNUM) ... ")
+        seednum += seednum == 0 ? 0 : 1
+        seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
+        println("Evaluation with seed # : $(seednum) ... ")
         y = f(pmatrix)
         ysum += y
     end
-    _SEEDNUM -= _SEEDNUM == 0 ? 0 : nruns - 1
     return ysum / nruns
 end
 
@@ -215,14 +210,14 @@ struct OFATResult
     y::Matrix{Float64}
     ynom::Vector{Float64}
 
-    function OFATResult(actpars,f,n,nruns)
+    function OFATResult(actpars,f,n,nruns,seednum)
         pnom = nominal_values(actpars)
         pmatrix = _compute_ofat_p(actpars,pnom,n)
         for i in 1:length(actpars)
             @assert actpars[i] === _ACTIVEPARS[i]
         end
         ynom = f(pnom)
-        y = _compute_ofat_y(f, pmatrix,nruns)
+        y = _compute_ofat_y(f, pmatrix,nruns,seednum)
         #y = reshape(tmp,(length(ynom), length(actpars),n))
         new(pmatrix,pnom,y,ynom)
     end
@@ -265,8 +260,8 @@ function plot_ofatres(res::OFATResult, actpars, ylabels)
     return plts
 end
 
-_solve(pr::OFATProblem, f, actpars; n=11, nruns, kwargs...) =
-    OFATResult(actpars,f,n,nruns)
+_solve(pr::OFATProblem, f, actpars; n=11, nruns, seednum, kwargs...) =
+    OFATResult(actpars,f,n,nruns,seednum)
 
 
 #=
