@@ -63,6 +63,7 @@ struct OFATResult
 
 end
 
+
 "Visualize OFAT results"
 function plot_ofatres(res::OFATResult, actpars, ylabels)
 
@@ -99,5 +100,5 @@ function plot_ofatres(res::OFATResult, actpars, ylabels)
     return plts
 end
 
-_solve(pr::OFATProblem, f, actpars; n=11, nruns, seednum, kwargs...) =
+solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}}; n=11, nruns, seednum, kwargs...) =
     OFATResult(actpars,f,n,nruns,seednum)
