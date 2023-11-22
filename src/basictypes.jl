@@ -1,8 +1,8 @@
 """
-Basic data types for Agent-based model including Person agents and space-related data types
+Basic data types for simulation of Agent-based models including Person agents
+    and space-related data types
 """
 
-include("types/active_pars.jl")
 include("types/clock.jl")
 include("types/town.jl")
 include("types/house.jl")

@@ -17,6 +17,7 @@ using Base.Threads
 using Random
 
 include("./simspec.jl")
+include("./methods.jl")
 
 #=
 #############################################
@@ -72,7 +73,7 @@ const femaleAgeDieRate = ActiveParameter{Float64}(:femaleAgeDieRate,0.0001,0.000
 const femaleAgeScaling = ActiveParameter{Float64}(:femaleAgeScaling,15.1,16.1,15.5)
 const maleAgeDieRate = ActiveParameter{Float64}(:maleAgeDieRate,0.0001,0.0003,0.00021)
 const maleAgeScaling = ActiveParameter{Float64}(:maleAgeScaling,13.5,14.5,14.0)
-const basicDivorceRate = ActiveParameter{Float64}(:basicDivorceRate,0.01,0.09,0.06)
+const basicDivorceRate = ActiveParameter{Float64}(:basicDivorceRate,0.01,0.3,0.06)
 const basicMaleMarriageRate = ActiveParameter{Float64}(:basicMaleMarriageRate,0.4,0.9,0.7)
 
 
@@ -82,39 +83,6 @@ const basicMaleMarriageRate = ActiveParameter{Float64}(:basicMaleMarriageRate,0.
 #############################################
 =#
 
-abstract type ComputationProblem end
-abstract type SAProblem <: ComputationProblem end
-abstract type GSAProblem <: SAProblem end
-abstract type LSAProblem <: SAProblem end
-
-struct MorrisProblem <: GSAProblem end
-struct SobolProblem <: GSAProblem end
-
-struct OFATProblem <: LSAProblem end
-
-notimplemented(prob::ComputationProblem) = error("$(typeof(pr)) not implemented")
-
-_solve(prob::GSAProblem, f, lbs, ubs;kwargs...) = notimplemented(pr)
-
-# Specialized for GlobalSensitivity.jl
-function _solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{Float64}};kwargs...)
-
-    lbs = [ ap.lowerbound for ap in actpars ]
-    ubs = [ ap.upperbound for ap in actpars ]
-    for i in 1:length(ubs)
-        @assert lbs[i] < ubs[i]
-    end
-
-    return _solve(prob, f, lbs, ubs; kwargs...)
-end
-
-function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{Float64}};
-    kwargs...)     # method specific keyword arguments
-
-    _reset_glbvars!(;kwargs...)
-    _reset_ACTIVEPARS!(actpars)
-    return _solve(prob,f,actpars;kwargs...)
-end
 
 
 
@@ -187,59 +155,20 @@ end
 # Step VI - Wrapper for GlobalSensitivty.jl methods
 ###################################################
 
-
-#############################################
-# Step VI.1 - API for GSA using Morris method
-#############################################
-
-function _solve(pr::MorrisProblem, f, lbs, ubs;
-    batch = true,
-    relative_scale = false,
-    num_trajectory = 10,
-    total_num_trajectory = 5 * num_trajectory,
-    len_design_mat = 10,
-    kwargs...)
-
-    @time morrisInd = gsa(f,
-        Morris(;relative_scale, num_trajectory, total_num_trajectory, len_design_mat),
-        [ [lbs[i],ubs[i]] for i in 1:length(ubs) ];
-        batch)
-    return morrisInd
+function solve_fabm(prob::ComputationProblem, actpars::Vector{ActiveParameter{Float64}};
+    kwargs...)     # method specific keyword arguments
+    _reset_glbvars!(;kwargs...)
+    _reset_ACTIVEPARS!(actpars)
+    return _solve(prob,fabm,actpars;kwargs...)
 end
 
-
-########################################
-# Step VI.2 - API for GSA using Sobol method
-#########################################
-
-
-function _solve(pr::SobolProblem, f, lbs, ubs;
-    batch = true,
-    samples = 10,
-    kwargs...)
-
-    sobolInd = gsa(f, Sobol(), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ]; batch, samples)
-end
-
-#=
-To compute sobol indices, this can be done as follows:
-
-either
-sobolInd = gsa(outputs, Sobol(), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ], samples = 100)
-
-or
-
-A = sample(100,ACTIVEPARS,SobolSample()) ;
-B = sample(100,ACTIVEPARS,SobolSample()) ;
-
-sobolInd = gsa(outputs, Sobol(), A, B)
-
-=#
 
 
 ########################################
 # Step VI.3 - API for OFAT using
 #########################################
+
+struct OFATProblem <: LSAProblem end
 
 function _compute_ofat_p(actpars,pnom,n)
     pmat = Array{Float64,2}(undef,length(actpars),(n*length(actpars)))
@@ -368,8 +297,7 @@ actpars =
     [ startMarriedRate, baseDieRate, femaleAgeDieRate, femaleAgeScaling,
       maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ];
 # cf. GlobalSensitivity.jl documnetation for Morris method arguments
-morrisInd = solve(MorrisProblem(),
-          fabm,
+morrisInd = solve_fabm(MorrisProblem(),
           actpars;
            clock = Monthly,
            initialpop = 3000,
