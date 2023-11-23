@@ -53,9 +53,11 @@ end
 function _solve(pr::SobolProblem, f, lbs, ubs;
     batch = true,
     samples = 10,
+    order = [0,1],   # order = [0,1,2] computes the 2nd order indices
+    conf_level = 0.95,
     kwargs...)
 
-    sobolInd = gsa(f, Sobol(), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ]; batch, samples)
+    sobolInd = gsa(f, Sobol(;order, conf_level), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ]; batch, samples)
     return sobolInd
 end
 
