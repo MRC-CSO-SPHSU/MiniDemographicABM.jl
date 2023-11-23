@@ -65,7 +65,8 @@ end
 
 
 "Visualize OFAT results"
-function plot_ofatres(res::OFATResult, actpars, ylabels)
+function visualize(res::OFATResult,
+    actpars::Vector{ActiveParameter{T}}, ylabels::Vector{String}) where T
 
     ny = length(res.ynom)
     np = length(res.pnom)
@@ -86,7 +87,7 @@ function plot_ofatres(res::OFATResult, actpars, ylabels)
     end
 
     for yind in 1:ny
-        for pind in 1:length(actpars)
+        for pind in 1:np
             plts[pind,yind] = plot()
             scatter!(plts[pind,yind] ,
                 res.pmatrix[pind, (pind-1)*n+1:pind*n] ,
