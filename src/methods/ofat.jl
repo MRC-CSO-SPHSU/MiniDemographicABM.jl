@@ -92,7 +92,8 @@ function visualize(res::OFATResult,
             scatter!(plts[pind,yind] ,
                 res.pmatrix[pind, (pind-1)*n+1:pind*n] ,
                 res.y[yind,(pind-1)*n+1:pind*n],
-                title = " $(plabels[pind]) vs. $(ylabels[yind]) ")
+                title = " $(plabels[pind]) vs. $(ylabels[yind]) ",
+                label = "")
             xlims!(plts[pind,yind],plbs[pind],pubs[pind])
             ylims!(plts[pind,yind],ylbs[yind],yubs[yind])
         end
@@ -101,5 +102,6 @@ function visualize(res::OFATResult,
     return plts
 end
 
-solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}}; n=11, nruns, seednum, kwargs...) =
-    OFATResult(actpars,f,n,nruns,seednum)
+solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}};
+    n=11, nruns, seednum, kwargs...) =
+    @time OFATResult(actpars,f,n,nruns,seednum)
