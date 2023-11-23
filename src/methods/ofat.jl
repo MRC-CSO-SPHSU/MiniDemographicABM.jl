@@ -104,4 +104,4 @@ end
 
 solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}};
     n=11, nruns, seednum, kwargs...) =
-    @time OFATResult(actpars,f,n,nruns,seednum)
+    OFATResult(actpars,f,n,nruns,seednum)

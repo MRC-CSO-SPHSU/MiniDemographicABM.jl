@@ -145,7 +145,7 @@ function solve_fabm(prob::ComputationProblem, actpars::Vector{ActiveParameter{Fl
     _reset_glbvars!(;kwargs...)
     _reset_ACTIVEPARS!(actpars)
     seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
-    return solve(prob,fabm,actpars;seednum,kwargs...)
+    return @time solve(prob,fabm,actpars;seednum,kwargs...)
 end
 
 

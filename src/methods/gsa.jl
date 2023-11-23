@@ -39,7 +39,7 @@ function _solve(pr::MorrisProblem, f, lbs, ubs;
     len_design_mat = 10,
     kwargs...)
 
-    @time morrisInd = gsa(f,
+    morrisInd = gsa(f,
         Morris(;relative_scale, num_trajectory, total_num_trajectory, len_design_mat),
         [ [lbs[i],ubs[i]] for i in 1:length(ubs) ];
         batch)
