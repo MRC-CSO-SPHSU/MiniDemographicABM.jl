@@ -12,8 +12,8 @@ abstract type LSAProblem <: SAProblem end
 
 notimplemented(prob::ComputationProblem) = error("$(typeof(prob)) not implemented")
 
-solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{Float64}};
-    kwargs...) = # method specific keyword arguments
+solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}};
+    kwargs...) where T = # method specific keyword arguments
     notimplemented(prob)
 
 include("./methods/gsa.jl")

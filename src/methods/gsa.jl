@@ -8,7 +8,7 @@ struct SobolProblem <: GSAProblem end
 _solve(prob::GSAProblem, f, lbs, ubs;kwargs...) = notimplemented(pr)
 
 # Specialized for GlobalSensitivity.jl
-function _solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{Float64}};kwargs...)
+function _solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{T}};kwargs...) where T
 
     lbs = [ ap.lowerbound for ap in actpars ]
     ubs = [ ap.upperbound for ap in actpars ]
@@ -19,8 +19,8 @@ function _solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{Float64}};k
     return _solve(prob, f, lbs, ubs; kwargs...)
 end
 
-function solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{Float64}};
-    kwargs...)     # method specific keyword arguments
+function solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{T}};
+    kwargs...) where T    # method specific keyword arguments
     return _solve(prob,f,actpars;kwargs...)
 end
 
