@@ -2,6 +2,8 @@
 Simplified API for GlobalSensitivity.jl
 =#
 
+using GlobalSensitivity: MorrisResult
+
 struct MorrisProblem <: GSAProblem end
 struct SobolProblem <: GSAProblem end
 
@@ -44,6 +46,20 @@ function _solve(pr::MorrisProblem, f, lbs, ubs;
     return morrisInd
 end
 
+
+function visualize(morrind::MorrisResult)
+    ny, np = size(morrind.means_star)
+    # @assert ny == length(ylabels)
+    # plabels = ["p" * string(i) for i in 1:np]
+    plts = Vector{Any}(undef,ny)
+    for i in 1:ny
+        plts[i] = plot()
+        scatter!(plts[i], log.(morrisInd.means_star[i,:]), log.(morrisInd.variances[i,:]),
+            series_annotations=[string(i) for i in 1:np],
+            label="(log(mean*) , log(sigma))")
+    end
+    return plts
+end
 
 ########################################
 # Step VI.2 - API for GSA using Sobol method
