@@ -154,14 +154,13 @@ end
 # Step VI - Documentation for execution and visualization
 #########################################################
 
+# API and implementation : methods/*.jl
 
 #########################################################
 # Step VI.1 Executing and visualizing Morris Indices
 #########################################################
 
 #=
-how to execute and visualize:
-
 actpars =
     [ startMarriedRate, baseDieRate, femaleAgeDieRate, femaleAgeScaling,
       maleAgeDieRate, maleAgeScaling, basicDivorceRate, basicMaleMarriageRate ];
@@ -180,8 +179,12 @@ morrisInd = solve_fabm(MorrisProblem(),
 
 # Visualize the result w.r.t. the variable mean_living_age
 scatter(log.(morrisInd.means_star[2,:]), morrisInd.variances[2,:],
-    series_annotations=[string(i) for i in 1:length(ACTIVEPARS)],
+    series_annotations=[string(i) for i in 1:length(actpars)],
     label="(log(mean*),sigma)")
+
+# or
+
+ylabels =
 
 Results regarding the output mean_living_age can be accessed via
 
@@ -198,9 +201,24 @@ As expected,
 =#
 
 
-#########################################################
-# Step VII.3 Executing and visualizing OFAT
-#########################################################
+###########################################
+# Step VI.2 Executing and visualizing Sobol
+###########################################
+
+#=
+
+actpars = ...
+sobolInd = solve_fabm(SobolProblem(), actpars; samples = 10 , seednum = 1 )
+    # other options , order = [0, 1, 2 ] , compute the second order
+    #                 batch = false , prevent parallelization
+
+plabels = ["p"*string(i) for i in 1:length(actpars)]
+bar(plabels, sobolInd.S1[1,:], title = "First order indices of y[1]", legend = false)
+=#
+
+###########################################
+# Step VI.3 Executing and visualizing OFAT
+###########################################
 
 #=
 
@@ -213,7 +231,10 @@ ofatres = solve_fabm(OFATProblem(), actpars;
     nruns = 10);
 
 ylabels = [ "ratio(singles)" , "mean_livings_age", "ratio(males)", "ratio(children)" ] ;
-plts = plot_ofatres(res,actpars,ylabels) ;
+plts = visualize(ofatres,actpars,ylabels) ;
 
 # within REPL, display the plots as:
+# display(plts[1,2])  , i.e. y[2] vs. p[1]
+# ...
+
 =#
