@@ -184,7 +184,7 @@ scatter(log.(morrisInd.means_star[2,:]), morrisInd.variances[2,:],
 
 # or
 
-ylabels =
+ylabels = [ "ratio(singles)" , "mean_livings_age", "ratio(males)", "ratio(children)" ];
 
 Results regarding the output mean_living_age can be accessed via
 
@@ -214,6 +214,12 @@ sobolInd = solve_fabm(SobolProblem(), actpars; samples = 10 , seednum = 1 )
 
 plabels = ["p"*string(i) for i in 1:length(actpars)]
 bar(plabels, sobolInd.S1[1,:], title = "First order indices of y[1]", legend = false)
+
+or
+
+s1plts, stplts = visualize(sobolInd,ylabels)
+display(s1plts)
+display(stplts)
 =#
 
 ###########################################
