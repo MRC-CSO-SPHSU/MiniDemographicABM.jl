@@ -25,7 +25,7 @@ include("./helpers.jl")
         person1 = add_agent_pos!(Person(1,allhouses[1],random_gender(),20), model)
         @test home(person1) == allhouses[1]
 
-        add_agent!(Person(nextid(model),UNDEFINED_HOUSE,random_gender(),31), allhouses[2], model)
+        add_agent!(Person(nextid(model),undefined_house(),random_gender(),31), allhouses[2], model)
         @test home(model[2]) == allhouses[2]
 
         add_agent!(model; age = 31)
