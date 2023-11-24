@@ -1,4 +1,4 @@
-[![Open Code Badge](https://www.comses.net/static/images/icons/open-code-badge.png)](https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.1.0/)
+[![Open Code Badge](https://www.comses.net/static/images/icons/open-code-badge.png)](https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.3.0/)
 
 # MiniDemographicABM.jl 
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
@@ -8,20 +8,23 @@ MiniDemographicABM.jl: A simplified agent based model of UK demography based on 
 
 ### Description
 
-This package implements a simplified non-calibrated agent-based demographic model of the UK. Individuals of an initial population are subject to ageing, deaths, births, divorces and marriages. The main purpose of the model is to explore and exploit capabilities of the state-of-the-art Agents.jl Julia package. Additionally, the model can serve as a base model to be adjusted to realistic large-scale socio-economics, pandemics or social interactions-based studies mainly within a demographic context. A specific case-study simulation is progressed with a user-defined simulation fixed step size on a hourly, daily, weekly, monthly basis or even an arbitrary user-defined clock rate.  
+This package implements a simplified non-calibrated agent-based demographic model of the UK. Individuals of an initial population are subject to ageing, deaths, births, divorces and marriages. The main purpose of the model is to explore and exploit capabilities of the state-of-the-art Agents.jl Julia package as well as other ecosystem of Julia packages like GlobalSensitivity.jl. Additionally, the model can serve as a base model to be adjusted to realistic large-scale socio-economics, pandemics or social interactions-based studies mainly within a demographic context. A specific case-study simulation is progressed with a user-defined simulation fixed step size on a hourly, daily, weekly, monthly basis or even an arbitrary user-defined clock rate.  
 
 ### Author(s) 
 [Atiyah Elsheikh](https://www.gla.ac.uk/schools/healthwellbeing/staff/atiyahelsheikh/)
 
 ### Contributor(s)  
-Atiyah Elsheikh (V1.0)  
+Atiyah Elsheikh (V1.0-V2.1)  
 
 ### Release Notes 
 - **V1.0** (22.2.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM, not yet calibrated. A space type was implemented as a demonstration. A comprehensive set of unit tests is included. Blue style coding convetions are followed. 
     - V1.0.1 (14.7.23) : updating ReadMe with usually demanded information
 - **V1.1** (28.7.23): Model documentation as a pdf and unified naming convention of model parameters
 - **V1.2** (27.9.23): Equaivalent simulation program based on ABMSim Version 0.7
-    - V1.2.1 (11.10.23): ABMSim V0.7.2 for removing the cause of Agents.jl performance drop when using ABMSim    
+    - V1.2.1 (11.10.23): ABMSim V0.7.2 for removing the cause of Agents.jl performance drop when using ABMSim
+- **V1.3**(23.10.23): improved specification / documentation  
+- **V2.0**(6.11.23): Global Sensitivity Analysis with Morris Index, bugs resolved due to expansion of the parameter space
+- **V2.1**(24.11.23): GSA with Sobol indices, parallelizaztion multi-threadin, OFAT local sensitivity analysis algorithm 
 
 ### License
 MIT License
@@ -38,7 +41,7 @@ This code was developed and experimented on
 
 ### URL 
 Check for updates here: 
-- **V1.0** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
+- **V1.0-V2.1** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
 
 ### Exeution 
 Within Shell:
@@ -51,16 +54,41 @@ Within REPL:
 
 where script names are 
 - main.jl : for executing the simulation program
+- main-gsa.jl : for activating routines for performing GSA, cf. documentation within the script
 - runalltests.jl: for running unit tests. 
 
 ### References
+
+Specification: 
+
+[1] Atiyah Elsheikh, Specification of MiniDemographicABM.jl: A simplified agent-based demographic model of the UK. Technical report, arXiv:2307.16548, 2023
+
+[2] Atiyah Elsheikh, Formal specification terminology for demographic agent-based models of fixed-step single-clocked simulations. Technical report, arXiv.2308.13081, 2023
+
 The underlying model is inspired by the model given in the following paper:   
 
-[1] Umberto Gostoli and Eric Silverman Social and child care provision in kinship networks: An agent-based model. PLoS ONE 15(12): 2020 (https://doi.org/10.1371/journal.pone.0242779)
+[3] Umberto Gostoli and Eric Silverman Social and child care provision in kinship networks: An agent-based model. PLoS ONE 15(12): 2020 (https://doi.org/10.1371/journal.pone.0242779)
 
 The packages Agents.jl: 
 
-[2] George Datseris, Ali R. Vahdati, Timothy C. DuBois: Agents.jl: a performant and feature-full agent-based modeling software of minimal code complexity. SIMULATION. 2022. doi:10.1177/00375497211068820
+[4] George Datseris, Ali R. Vahdati, Timothy C. DuBois: Agents.jl: a performant and feature-full agent-based modeling software of minimal code complexity. SIMULATION. 2022. doi:10.1177/00375497211068820
+
+The package GlobalSensitity.jl
+
+[5] Vaibhav Kumar Dixit and Christopher Rackauckas: GlobalSensitivity.jl: Performant and Parallel Global Sensitivity Analysis with Julia, Journal of Open Source Software, 2022
+
+Morris index algorithm via
+
+[6] F. Campolongo, J. Cariboni & A. Saltelli (2007). An effective screening design for sensitivity
+analysis of large models. Environmental Modelling & Software, 22(10), 1509–1518.
+
+Sobol index algorithm via 
+
+[7] A. Saltelli, Making best use of model evaluations to compute sensitivity indices, Computer Physics Communications 145, 2002
+
+OFAT Algorithm 
+
+[8] G. ten Broeke, G. van Voorn & A. Ligtenberg. Which sensitivty analysis method should I use for my agent-based model?, Journal of Artificial Societes and Social Simulation 19(1) 5, 2016
 
 ### Acknowledgements  
 - [Dr. Martin Hinsch](https://www.gla.ac.uk/schools/healthwellbeing/staff/martinhinsch/) for Scientific Exchange
@@ -70,17 +98,16 @@ For the purpose of open access, the author(s) has applied a Creative Commons Att
 
 ### Cite as 
 
-Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic model of the UK. CoMSES Computational Model Library, July 2023. V1.1.0
+Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic model of the UK. CoMSES Computational Model Library, Nov. 2023. (V2.1)
 
 #### bibtex
 @Software{MiniDemographicABMjl,
   author  = {Atiyah Elsheikh},
   comment = {CoMSES Computational Model Library},
-  date    = {2023-07-28},
-  month   = jul,
+  month   = Oct,
   title   = {{MiniDemographicABM.jl}: {A} simplified agent-based demographic model of the {UK}},
-  url     = {https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.1.0/},
-  version = {1.1.0},
+  url     = { https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/2.1/ },
+  version = {2.1},
   year    = {2023},
 }
 

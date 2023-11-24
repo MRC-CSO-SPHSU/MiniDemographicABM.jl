@@ -9,28 +9,40 @@ julia> include("script-name.jl")
 
 using Agents
 using Plots
+using Random
 
 include("./simspec.jl")
 
 #=
 properties can be accessed in models.jl
-Other clock options: Monthly, Hourly
+clock options: Monthly, Daily, Hourly
+Other model parameters :
+    startMarriedRate=0.8, maxNumberOfMarriageCand=100, baseDieRate = 0.0001,
+    maleAgeDieRate = 0.00021, maleAgeScaling = 14.0, femaleAgeDieRate = 0.00019,
+    femaleAgeScaling = 15.5, basicDivorceRate = 0.06, basicMaleMarriageRate = 0.7
 =#
-const properties = DemographicABMProp{Daily}(initialPop = 10_000)
+properties = DemographicABMProp{Monthly}(initialPop = 10_000,
+                                         starttime = 1951//1,
+                                         seednum = 0)
+numSimSteps = 12 * 100 # 365 * 10   # or 12 * 10 for Monthly
+
 const model = UKDemographicABM(properties)
 
-seed!(model,floor(Int,time()))  # really random
+# if model seednum is 0 choose a random seed for model initialization, otherwise
+#   apply seeding with the given seed number
+model.seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(model.seednum)
+
 declare_population!(model)
 init_kinship!(model) # the kinship among population
 init_housing!(model) # housing assoication to population
 
-function agent_steps!(person,model)
+function _agent_steps!(person,model)
     age_step!(person,model)
     death!(person,model)
     divorce!(person,model)
 end
 
-function model_steps!(model)
+function _model_steps!(model)
     metastep!(model) # incrementing time
     dobirths!(model)
     domarriages!(model)
@@ -54,21 +66,12 @@ B. via modelData:
 agent accessory functions can be accessed in person.jl
 Data collection is conducted via the DataFrame.jl work package.
 =#
-num_deads(model) = length([person for person in allagents(model) if !isalive(person)])
 
-num_living(model) = length([person for person in allagents(model) if isalive(person)])
-num_living_males(model) = length([person for person in allagents(model) if isalive(person) && ismale(person)])
-ratio_males(model) = num_living_males(model) / num_living(model)
-
-mean_living_age(model) = sum([age(person) for person in allagents(model) if isalive(person)]) / num_living(model)
-
-num_children(model) = length([person for person in allagents(model) if isalive(person) && ischild(person)])
-ratio_children(model) = num_children(model) / num_living(model)
-
-num_singles(model) = length([person for person in allagents(model) if isalive(person) && issingle(person)])
-ratio_singles(model) = (num_singles(model) - num_children(model))/ num_living(model)
-
+# the entries of the vectors below are referring to built-in or
+#   functions in /basictypes/person.jl
 adata = [(isalive,sum), (ismale,sum,isalive), (age,mean,isalive), (age,maximum),(age,maximum,isalive)]
+
+# The entries below correspond to functions defined in /spec/models.jl
 mdata = [num_deads, ratio_males, mean_living_age, ratio_singles, ratio_children, currstep]
 
 #=
@@ -90,7 +93,7 @@ marriedParents = [ p for p in allagents(model) if !issingle(p) && has_children(p
 
 
 @time agent_df, model_df =
-    run!(model,agent_steps!,model_steps!,365*10; adata, mdata)
+    run!(model,_agent_steps!,_model_steps!,numSimSteps; adata, mdata)
 
 #=
 plot as follows from REPL
