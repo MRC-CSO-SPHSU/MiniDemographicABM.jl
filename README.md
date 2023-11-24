@@ -74,7 +74,7 @@ The packages Agents.jl:
 
 [4] George Datseris, Ali R. Vahdati, Timothy C. DuBois: Agents.jl: a performant and feature-full agent-based modeling software of minimal code complexity. SIMULATION. 2022. doi:10.1177/00375497211068820
 
-The package GlobalSensitity.jl
+The package GlobalSenstivity.jl
 
 [5] Vaibhav Kumar Dixit and Christopher Rackauckas: GlobalSensitivity.jl: Performant and Parallel Global Sensitivity Analysis with Julia, Journal of Open Source Software, 2022
 
