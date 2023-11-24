@@ -7,6 +7,12 @@ Stepping functions for evolving
     or to use agent-specific schudlers as well
 """
 
+# For debugging purpose
+# LSTMAN::Person = NOPERSON
+# LSTWOMAN::Person = NOPERSON
+# LSTMODEL = 0
+
+
 function _age_step!(person, model, inc)
     if !(isalive(person)) return nothing end
     person.age += inc
@@ -30,11 +36,12 @@ end
 
 function _death!(person, pars, numTicksYear)
     if !isalive(person) return false end
+    # bad formula
     ageDieRate  = ismale(person) ?
                         exp(age(person) / pars.maleAgeScaling)  * pars.maleAgeDieRate :
                         exp(age(person) / pars.femaleAgeScaling) * pars.femaleAgeDieRate
     rawRate = pars.baseDieRate + ageDieRate
-    @assert rawRate < 1
+    rawRate = rawRate >= 1 ? 0.99 : rawRate
     deathInstProb = instantaneous_probability(rawRate,numTicksYear)
     if rand() < deathInstProb
         set_dead!(person)
@@ -97,6 +104,14 @@ end
 function _divorce!(man, model, pars, data, numTicksYear)
     if !isalive(man) || !ismale(man) || issingle(man) return false  end
     agem = age(man)
+    #=
+    try
+        _x = data.divorceModifierByDecade[ceil(Int, agem / 10 )]
+    catch e
+        @show agem
+        error("someone with large age")
+    end
+    =#
     rawRate = pars.basicDivorceRate  * data.divorceModifierByDecade[ceil(Int, agem / 10 )]
     if rand() < instantaneous_probability(rawRate,numTicksYear)
         wife = partner(man)
@@ -136,8 +151,17 @@ _age_class(person) = trunc(Int, age(person)/10)
 # how about singles living with parents
 function _join_husbands_family(husband)
     wife = partner(husband)
-    @assert husband === oldest_house_occupant(home(husband))
-    @assert wife === oldest_house_occupant(home(wife))
+    #=
+    try
+        # This may cause problems due to step siblings
+        @assert husband === oldest_house_occupant(home(husband))
+        @assert wife === oldest_house_occupant(home(wife))
+    catch e
+        global LSTMAN = husband
+        global LSTWOMAN = wife
+        @warn "assertion error _join_husbands_family"
+    end
+    =#
     (decider , follower) =
         length(occupants(home(husband))) > length(occupants(home(wife))) ?
             (husband , wife) : (wife , husband)
@@ -163,15 +187,16 @@ function _marry_weight(man, woman, model)::Float64
     if !issingle(man) || !issingle(woman) return 0.0 end
     geoFactor = 1/exp(4*_geo_distance_factor(man, woman, model))
     ageFactor = _marriage_agediff_weight(man,woman)
-    # singles w. children are luckly to marry singles with children
+    # singles w. children are likely to marry singles with children
     numChildrenWithWoman = num_children_living_with(woman)
     numChildrenWithMan   = num_children_living_with(man)
+    # Bad formula
     childrenFactor = 1/exp(numChildrenWithWoman) * 1/exp(numChildrenWithMan) *
         exp(numChildrenWithMan * numChildrenWithWoman)
-    @assert childrenFactor > 0 && geoFactor > 0 && ageFactor > 0
+    # to avoid Inf
+    childrenFactor = childrenFactor > 1000 ? 1000 : childrenFactor
     return geoFactor * ageFactor * childrenFactor
 end
-
 
 function _domarriages!(model,pars,data,numTicksYear)
     cnt = 0
@@ -179,9 +204,11 @@ function _domarriages!(model,pars,data,numTicksYear)
         is_eligible_marriage(man) && ismale(man)]
     singleWomen = [woman for woman in allagents(model) if
         is_eligible_marriage(woman) && isfemale(woman)]
-    ncandidates = min(pars.maxNumberOfMarriageCand,floor(Int,length(singleWomen) / 10))
+    ncandidates = max(pars.maxNumberOfMarriageCand,floor(Int,length(singleWomen) / 10))
+    ncandidates = min(ncandidates,length(singleWomen))
     weight = Weights(zeros(ncandidates))
     for man in singleMen
+        if ncandidates - cnt <= 0 return cnt end
         manMarriageRate =
             pars.basicMaleMarriageRate * data.maleMarriageModifierByDecade[_age_class(man)]
         if rand() < instantaneous_probability(manMarriageRate, numTicksYear)

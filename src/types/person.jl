@@ -24,7 +24,9 @@ mutable struct PersonH{HouseType} <: AbstractAgent
         end
         person.partner = person.father = person.mother = noperson(HouseType)
         person.children = PersonH{HouseType}[]
-        add_occupant!(pos,person)
+        if pos != undefined_house()
+            add_occupant!(pos,person)
+        end
         return person
     end
 end
@@ -155,7 +157,7 @@ end
 function reset_house!(person)
     if !ishomeless(person)
         remove_occupant!(home(person),person)
-        person.pos = UNDEFINED_HOUSE
+        person.pos = undefined_house()
     end
     nothing
 end
