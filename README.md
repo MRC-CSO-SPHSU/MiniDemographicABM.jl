@@ -8,7 +8,8 @@ MiniDemographicABM.jl: A simplified agent based model of UK demography based on 
 
 ### Description
 
-This package implements a simplified non-calibrated agent-based demographic model of the UK. Individuals of an initial population are subject to ageing, deaths, births, divorces and marriages. The main purpose of the model is to explore and exploit capabilities of the state-of-the-art Agents.jl Julia package as well as other ecosystem of Julia packages like GlobalSensitivity.jl. Additionally, the model can serve as a base model to be adjusted to realistic large-scale socio-economics, pandemics or social interactions-based studies mainly within a demographic context. A specific case-study simulation is progressed with a user-defined simulation fixed step size on a hourly, daily, weekly, monthly basis or even an arbitrary user-defined clock rate.  
+This package implements a simplified non-calibrated agent-based demographic model of the UK. Individuals of an initial population are subject to ageing, deaths, births, divorces and marriages. The main purpose of the model is to explore and exploit capabilities of the state-of-the-art Agents.jl Julia package as well as other ecosystem of Julia packages like GlobalSensitivity.jl. Code includes examples for evaluating sensitivity analysis using OFAT, Morris and Sobol methods. 
+The model can serve as a base model to be adjusted to realistic large-scale socio-economics, pandemics or social interactions-based studies mainly within a demographic context. A specific case-study simulation is progressed with a user-defined simulation fixed step size on a hourly, daily, weekly, monthly basis or even an arbitrary user-defined clock rate.  
 
 ### Author(s) 
 [Atiyah Elsheikh](https://www.gla.ac.uk/schools/healthwellbeing/staff/atiyahelsheikh/)
