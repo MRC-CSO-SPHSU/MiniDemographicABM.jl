@@ -14,7 +14,7 @@ This package implements a simplified non-calibrated agent-based demographic mode
 [Atiyah Elsheikh](https://www.gla.ac.uk/schools/healthwellbeing/staff/atiyahelsheikh/)
 
 ### Contributor(s)  
-Atiyah Elsheikh (V1.0-V2.0)  
+Atiyah Elsheikh (V1.0-V2.1)  
 
 ### Release Notes 
 - **V1.0** (22.2.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM, not yet calibrated. A space type was implemented as a demonstration. A comprehensive set of unit tests is included. Blue style coding convetions are followed. 
@@ -23,7 +23,8 @@ Atiyah Elsheikh (V1.0-V2.0)
 - **V1.2** (27.9.23): Equaivalent simulation program based on ABMSim Version 0.7
     - V1.2.1 (11.10.23): ABMSim V0.7.2 for removing the cause of Agents.jl performance drop when using ABMSim
 - **V1.3**(23.10.23): improved specification / documentation  
-- **V2.0**(6.11.23): Global Sensitivity Analysis with Morris Index, bugs resolved due to expansion of the parameter space 
+- **V2.0**(6.11.23): Global Sensitivity Analysis with Morris Index, bugs resolved due to expansion of the parameter space
+- **V2.1**(24.11.23): GSA with Sobol indices, parallelizaztion multi-threadin, OFAT local sensitivity analysis algorithm 
 
 ### License
 MIT License
@@ -40,7 +41,7 @@ This code was developed and experimented on
 
 ### URL 
 Check for updates here: 
-- **V1.0-V2.0** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
+- **V1.0-V2.1** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
 
 ### Exeution 
 Within Shell:
@@ -53,6 +54,7 @@ Within REPL:
 
 where script names are 
 - main.jl : for executing the simulation program
+- main-gsa.jl : for activating routines for performing GSA, cf. documentation within the script
 - runalltests.jl: for running unit tests. 
 
 ### References
@@ -80,6 +82,14 @@ Morris index algorithm via
 [6] F. Campolongo, J. Cariboni & A. Saltelli (2007). An effective screening design for sensitivity
 analysis of large models. Environmental Modelling & Software, 22(10), 1509–1518.
 
+Sobol index algorithm via 
+
+[7] A. Saltelli, Making best use of model evaluations to compute sensitivity indices, Computer Physics Communications 145, 2002
+
+OFAT Algorithm 
+
+[8] G. ten Broeke, G. van Voorn & A. Ligtenberg. Which sensitivty analysis method should I use for my agent-based model?, Journal of Artificial Societes and Social Simulation 19(1) 5, 2016
+
 ### Acknowledgements  
 - [Dr. Martin Hinsch](https://www.gla.ac.uk/schools/healthwellbeing/staff/martinhinsch/) for Scientific Exchange
 - [Dr. Eric Silverman](https://www.gla.ac.uk/schools/healthwellbeing/staff/ericsilverman/) Principle Invistigator 
@@ -88,7 +98,7 @@ For the purpose of open access, the author(s) has applied a Creative Commons Att
 
 ### Cite as 
 
-Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic model of the UK. CoMSES Computational Model Library, October 2023. V1.3.0
+Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic model of the UK. CoMSES Computational Model Library, Nov. 2023. (V2.1)
 
 #### bibtex
 @Software{MiniDemographicABMjl,
@@ -96,8 +106,8 @@ Atiyah Elsheikh. MiniDemographicABM.jl: A simplified agent-based demographic mod
   comment = {CoMSES Computational Model Library},
   month   = Oct,
   title   = {{MiniDemographicABM.jl}: {A} simplified agent-based demographic model of the {UK}},
-  url     = { https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/1.3.0/ },
-  version = {1.3.0},
+  url     = { https://www.comses.net/codebases/e4727972-7bf7-4a30-9682-5c366e2ae067/releases/2.1/ },
+  version = {2.1},
   year    = {2023},
 }
 
