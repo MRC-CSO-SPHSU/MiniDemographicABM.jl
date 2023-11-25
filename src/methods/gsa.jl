@@ -2,7 +2,7 @@
 Simplified API for GlobalSensitivity.jl
 =#
 
-using GlobalSensitivity: MorrisResult
+using GlobalSensitivity: MorrisResult, SobolResult
 
 struct MorrisProblem <: GSAProblem end
 struct SobolProblem <: GSAProblem end
@@ -49,14 +49,13 @@ end
 
 function visualize(morrind::MorrisResult)
     ny, np = size(morrind.means_star)
-    # @assert ny == length(ylabels)
-    # plabels = ["p" * string(i) for i in 1:np]
     plts = Vector{Any}(undef,ny)
+    plabels = ["p"*string(i) for i in 1:np]
     for i in 1:ny
         plts[i] = plot()
-        scatter!(plts[i], log.(morrisInd.means_star[i,:]), log.(morrisInd.variances[i,:]),
-            series_annotations=[string(i) for i in 1:np],
-            label="(log(mean*) , log(sigma))")
+        scatter!(plts[i], log.(morrind.means_star[i,:]), log.(morrind.variances[i,:]),
+            series_annotations=plabels,
+            label="y_$(i)(log(mean*) , log(sigma))")
     end
     return plts
 end
@@ -77,11 +76,24 @@ function _solve(pr::SobolProblem, f, lbs, ubs;
     return sobolInd
 end
 
-#=
-To compute sobol indices, this can be done as follows:
+function visualize(sobolind::SobolResult, ylabels)
+    ny, np = size(sobolind.S1)
+    s1plts = Vector{Any}(undef,ny)
+    stplts = Vector{Any}(undef,ny)
+    plabels = ["p"*string(i) for i in 1:np]
+    for i in 1:ny
+        s1plts[i] = plot()
+        bar!(s1plts[i],plabels, sobolind.S1[i,:],
+            title = "First order indicies of $(ylabels[i])")
+        stplts[i] = plot()
+        bar!(stplts[i],plabels, sobolind.ST[i,:],
+            title = "Total order indicies of $(ylabels[i])")
+    end
+    return s1plts, stplts
+end
 
-either
-sobolInd = gsa(outputs, Sobol(), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ], samples = 100)
+#=
+another way to compute sobol indices
 
 or
 
@@ -89,5 +101,4 @@ A = sample(100,ACTIVEPARS,SobolSample()) ;
 B = sample(100,ACTIVEPARS,SobolSample()) ;
 
 sobolInd = gsa(outputs, Sobol(), A, B)
-
 =#
