@@ -34,7 +34,7 @@ function ΔfΔp_norm(f,p,δ::Float64,seednum)
     for i in 1:length(y)
         ΔyΔpNorm[i,:] =  p .* ( ΔyΔpNorm[i,:] / y[i] )
     end
-    return ΔyΔpNorm
+    return ΔyΔpNorm, y
 end
 
 function ΔfΔp_norm(f,p,δ::Float64,seednum, nruns) end
