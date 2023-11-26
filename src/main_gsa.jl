@@ -125,7 +125,7 @@ function fabm(pars)
         return [ 1e-3, 100.0, 0.5, 1e-3]
     end
     return [ ratio_singles(model),
-             float(mean_living_age(model)) ,
+             mean_living_age(model) ,
              ratio_males(model),
              max(ratio_children(model),1e-3) ]
 end
@@ -143,7 +143,14 @@ end
 
 "a sample ABM-based function with time-dependent output trajectories"
 function ftabm(pars)
-# return time-dependent trajectories
+    model = _create_sample_model(pars,_ACTIVEPARS;
+        clock=_CLOCK, starttime=_STARTTIME, initialPop = _INITIALPOP)
+    mdata = [currstep, ratio_singles, mean_living_age, ratio_males, ratio_children ]
+    _,res =
+           run!(model,_agent_steps!,_model_steps!,numSimSteps; mdata)
+    t = model_df.currstep
+    y = [ res.ratio_singles res.mean_living_age res.ratio_males  max.(res.ratio_children,1e-3) ] ;
+    return t, y
 end
 
 
