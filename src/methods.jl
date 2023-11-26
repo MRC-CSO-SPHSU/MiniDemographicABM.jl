@@ -18,3 +18,4 @@ solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}};
 
 include("./methods/gsa.jl")
 include("./methods/ofat.jl")
+include("./methods/oat.jl")
