@@ -49,15 +49,11 @@ struct OFATResult
     y::Matrix{Float64}
     ynom::Vector{Float64}
 
-    function OFATResult(actpars,f,n,nruns,seednum)
+    function OFATResult(f,actpars,n,nruns,seednum)
         pnom = nominal_values(actpars)
         pmatrix = _compute_ofat_p(actpars,pnom,n)
-        for i in 1:length(actpars)
-            @assert actpars[i] === _ACTIVEPARS[i]
-        end
         ynom = f(pnom)
         y = _compute_ofat_y(f, pmatrix,nruns,seednum)
-        #y = reshape(tmp,(length(ynom), length(actpars),n))
         new(pmatrix,pnom,y,ynom)
     end
 
@@ -104,4 +100,4 @@ end
 
 solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}};
     n=11, nruns, seednum, kwargs...) =
-    OFATResult(actpars,f,n,nruns,seednum)
+    OFATResult(f,actpars,n,nruns,seednum)
