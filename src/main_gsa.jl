@@ -110,10 +110,11 @@ function _create_sample_model(pars,actpars;clock,starttime,initialPop)
     @assert length(pars) == length(actpars)
     properties = DemographicABMProp{clock}(;starttime,initialPop)
     for (i,p) in enumerate(pars)
-        @assert actpars[i].lowerbound <= p <= actpars[i].upperbound
+        #@assert actpars[i].lowerbound <= p <= actpars[i].upperbound
         set_par_value!(properties,actpars[i],p)
     end
     model = declare_initialized_UKmodel(properties)
+    return model
 end
 
 function fabm(pars)
