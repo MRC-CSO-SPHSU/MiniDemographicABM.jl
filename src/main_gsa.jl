@@ -83,8 +83,8 @@ For defining simulation-based functions:
 model declaration, initializtaion and stepping definitions can be accessed in simspec.jl
 via the calls
    declare_initialized_UKModel(..)
-   agent_steps()
-   model_steps()
+   agent_steps!()
+   model_steps!()
 
    How to execute an ABM simulation based on Agents.jl, cf. main.jl
 =#
@@ -106,15 +106,19 @@ via the calls
 ##  using the following global constants below
 ##
 
-function fabm(pars)
-    @assert length(pars) == length(_ACTIVEPARS)
-    properties = DemographicABMProp{_CLOCK}(starttime = _STARTTIME,
-        initialPop = _INITIALPOP)
+function _create_sample_model(pars,actpars;clock,starttime,initialPop)
+    @assert length(pars) == length(actpars)
+    properties = DemographicABMProp{clock}(;starttime,initialPop)
     for (i,p) in enumerate(pars)
-        @assert _ACTIVEPARS[i].lowerbound <= p <= _ACTIVEPARS[i].upperbound
-        set_par_value!(properties,_ACTIVEPARS[i],p)
+        @assert actpars[i].lowerbound <= p <= actpars[i].upperbound
+        set_par_value!(properties,actpars[i],p)
     end
-    model = declare_initialized_UKmodel(_CLOCK,properties)
+    model = declare_initialized_UKmodel(properties)
+end
+
+function fabm(pars)
+    model = _create_sample_model(pars,_ACTIVEPARS;
+        clock=_CLOCK, starttime=_STARTTIME, initialPop = _INITIALPOP)
     run!(model,agent_steps!,model_steps!,_NUMSTEPS)
     if num_living(model) == 0
         @warn "no living people"
@@ -135,6 +139,11 @@ function fabm(pmatrix::Matrix{Float64})
         next!(pr)
     end
     return res
+end
+
+"a sample ABM-based function with time-dependent output trajectories"
+function ftabm(pars)
+# return time-dependent trajectories
 end
 
 
