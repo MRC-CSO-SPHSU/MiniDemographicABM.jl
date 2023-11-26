@@ -1,4 +1,8 @@
 """
+An example of conducting global / local sensitivity analysis of an ABM-based simulation
+function.
+
+
 Run this script from shell as
 #  julia <script-name.jl>
 
@@ -14,7 +18,6 @@ using GlobalSensitivity
 using Random
 using ProgressMeter
 using Base.Threads
-using Random
 
 include("./simspec.jl")
 include("./methods.jl")
