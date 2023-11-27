@@ -16,6 +16,16 @@ solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}};
     kwargs...) where T = # method specific keyword arguments
     notimplemented(prob)
 
+"""
+Simulations of ABMs are not determinstic, i.e. different seeds lead to different
+results. Thus, it might be useful to apply specific computational analysis to multiple runs
+with different seed numbers and consider the avergae values of the results
+"""
+
+abstract type RunMode end
+struct SingleRun <: RunMode end   # default
+struct MultipleRun <: RunMode end
+
 include("./methods/gsa.jl")
 include("./methods/ofat.jl")
 include("./methods/oat.jl")
