@@ -5,7 +5,7 @@ Basic data type for declaring active parameters to which particular analysis is 
 """
 
 using QuasiMonteCarlo, Distributions
-import StatsBase: sample
+import StatsBase: sample, std
 
 """
 A data type for uncertain model parameter w.r.t. which computational analysis task  is
@@ -44,3 +44,8 @@ sample(n,apars::Vector{ActiveParameter{T}}, sampleAlg  ) where T =
         [ ap.lowerbound for ap in apars ],
         [ ap.upperbound for ap in apars ] ,
         sampleAlg)
+
+
+"standard diviation of uncertain parameter derived from a uniform distribution"
+std(apar::ActiveParameter{T}) where T = (apar.upperbound - apar.lowerbound)^2 / 12
+std(apars::Vector{ActiveParameter{T}}) where T =  [std(ap) for ap in apars]
