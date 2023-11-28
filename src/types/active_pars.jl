@@ -7,6 +7,11 @@ Basic data type for declaring active parameters to which particular analysis is 
 using QuasiMonteCarlo, Distributions
 import StatsBase: sample
 
+"""
+A data type for uncertain model parameter w.r.t. which computational analysis task  is
+    sought, e.g. sensitivity analysis or calibration. It is assumed that such an uncertain
+    parameter is derived from a uniform distribution (subject to generalization by need)
+"""
 mutable struct ActiveParameter{ValType}
     name::Symbol
     lowerbound::ValType
