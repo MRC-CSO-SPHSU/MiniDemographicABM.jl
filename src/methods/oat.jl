@@ -7,6 +7,7 @@ Given an ABM model with a set of uncertain model parameters each associated with
     about their nominal values
 """
 
+using LinearAlgebra: I
 
 struct OATProblem <: LSAProblem end
 
@@ -18,13 +19,10 @@ function ΔfΔp(f,p,δ::Float64,::RunMode=SingleRun();seednum)
     ny = length(y)
     np = length(p)
     ΔyΔp = Array{Float64,2}(undef, ny, np)
-    pδ = copy(p)
-    for i in 1:np
-      pδ[i] += p[i] * δ
+    @threads for i in 1:np
       seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
-      yδ = f(pδ)
-      ΔyΔp[:,i] = ( yδ - y ) / δ
-      pδ[i] = p[i]
+      @inbounds yδ = f(p + p[i] * I[1:np,i] * δ)
+      @inbounds ΔyΔp[:,i] = ( yδ - y ) / δ
     end
     return ΔyΔp, y
 end
@@ -34,8 +32,9 @@ end
 "normalized parameter sensitivities"
 function ΔfΔp_normalized(f,p,δ::Float64,::RunMode=SingleRun(); seednum)
     ΔyΔpNorm , y = ΔfΔp(f,p,δ;seednum)
-    for i in 1:length(y)
-        ΔyΔpNorm[i,:] =  p .* ( ΔyΔpNorm[i,:] / y[i] )
+    ny = length(y)
+    @simd for i in 1:ny
+        @inbounds ΔyΔpNorm[i,:] =  p .* ( ΔyΔpNorm[i,:] / y[i] )
     end
     return ΔyΔpNorm, y
 end
@@ -55,6 +54,13 @@ function ΔfΔp_normalized(f,p,δ::Float64, ::MultipleRun; seednum, nruns)
     return ΔyΔpNorm, yall, yavg
 end
 
+function _normalize_std!(ΔyΔpNorm,σp,σy)
+    ny = size(ΔyΔpNorm)[1]
+    @simd for i in 1:ny
+        @inbounds ΔyΔpNorm[i,:] =  σp .* ( ΔyΔpNorm[i,:] / σy[i] )
+    end
+    nothing
+end
 
 """
 parameter sensitivities normalized with standard diviations
@@ -66,22 +72,24 @@ function ΔfΔp_normstd(f,p,δ,::RunMode=SingleRun();
     # compute derivatives
     ΔyΔpNorm, y = ΔfΔp(f,p,δ;seednum)
     ny = length(y)
-    np = length(p)
     # normalization
     σp = std(actpars)
     pmatrix = sample(n,actpars,sampleAlg)  # design matrix
     ymatrix = Array{Float64}(undef,ny,n)
      # compute σ_y
-    for i in 1:n
+    @threads for i in 1:n
         seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
-        ymatrix[:,i] = f(pmatrix[:,i])
+        @inbounds ymatrix[:,i] = f(pmatrix[:,i])
     end
-    σy = [std(ymat[i,:]) for i in 1:size(ymat)[1]]
-    # normalize
-    for i in 1:length(y)
-        ΔyΔpNorm[i,:] =  σp .* ( ΔyΔpNorm[i,:] / σy[i] )
-    end
+    σy = [std(ymatrix[i,:]) for i in 1:ny]
+    _normalize_std!(ΔyΔpNorm,σp,σy)
     return  ΔyΔpNorm, y, ymatrix, σy, σp
+end
+
+
+function ΔfΔp_normstd(f,p,δ,::MultipleRun;
+    seednum,nruns,sampleAlg=SobolSample(),n=length(p)*length(p))
+    # ...
 end
 
 """
