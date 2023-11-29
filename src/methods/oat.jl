@@ -33,7 +33,7 @@ end
 
 "normalized parameter sensitivities"
 function ΔfΔp_normalized(f,p,δ::Float64,::RunMode=SingleRun(); seednum)
-    ΔyΔpNorm , y = ΔfΔp(f,p,δ,seednum)
+    ΔyΔpNorm , y = ΔfΔp(f,p,δ;seednum)
     for i in 1:length(y)
         ΔyΔpNorm[i,:] =  p .* ( ΔyΔpNorm[i,:] / y[i] )
     end
@@ -55,10 +55,34 @@ function ΔfΔp_normalized(f,p,δ::Float64, ::MultipleRun; seednum, nruns)
     return ΔyΔpNorm, yall, yavg
 end
 
-# approximated normalized derivatives with standard diviation ...
 
-
-function ΔftΔp(ft,p,δ) end
+"""
+parameter sensitivities normalized with standard diviations
+    - of parameters derived from a uniform distribution
+    - of model outputs computed via a design matrix
+"""
+function ΔfΔp_normstd(f,p,δ,::RunMode=SingleRun();
+                        seednum,sampleAlg=SobolSample(),n=length(p)*length(p))
+    # compute derivatives
+    ΔyΔpNorm, y = ΔfΔp(f,p,δ;seednum)
+    ny = length(y)
+    np = length(p)
+    # normalization
+    σp = std(actpars)
+    pmatrix = sample(n,actpars,sampleAlg)  # design matrix
+    ymatrix = Array{Float64}(undef,ny,n)
+     # compute σ_y
+    for i in 1:n
+        seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
+        ymatrix[:,i] = f(pmatrix[:,i])
+    end
+    σy = [std(ymat[i,:]) for i in 1:size(ymat)[1]]
+    # normalize
+    for i in 1:length(y)
+        ΔyΔpNorm[i,:] =  σp .* ( ΔyΔpNorm[i,:] / σy[i] )
+    end
+    return  ΔyΔpNorm, y, ymatrix, σy, σp
+end
 
 """
 OAT Result contains:
