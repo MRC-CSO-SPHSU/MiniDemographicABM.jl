@@ -26,6 +26,6 @@ abstract type RunMode end
 struct SingleRun <: RunMode end   # default
 struct MultipleRun <: RunMode end
 
-include("./methods/gsa.jl")
-include("./methods/ofat.jl")
-include("./methods/oat.jl")
+include("./methods/gsa.jl")     # GSA methods from GlobalSensitivity.jl
+include("./methods/ofat.jl")    # One Factor At Time LSA method
+include("./methods/oat.jl")     # One At Time derivative-based LSA Method
