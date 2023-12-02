@@ -29,7 +29,7 @@ function ΔfΔp(f,p,δ::Float64,::RunMode=SingleRun();seednum)
     return ΔyΔp, y, yall
 end
 
-ΔfΔp(f,p,δ::Float64,::MultipleRun;seednum) = notimplemented()
+ΔfΔp(f,p,δ::Float64,::MultipleRun;seednum,nruns) = notimplemented()
 
 "normalized parameter sensitivities"
 function ΔfΔp_normalized(f,p,δ::Float64,::RunMode=SingleRun(); seednum)
