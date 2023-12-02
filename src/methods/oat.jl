@@ -47,14 +47,11 @@ function ΔfΔp_normalized(f,p,δ::Float64, ::MultipleRun; seednum, nruns)
     ny = length(y)
     yall = Array{Float64,2}(undef,ny,nruns)
     yall[:,1] = y
-    # To activate multi-threading , uncomment the following
-    # addlock = ReentrantLock()
-    # @threads
-    for i in 2:nruns
+    # Multi-level multi-threading
+    addlock = ReentrantLock()
+    @threads for i in 2:nruns
         tmp, yall[:,i] = ΔfΔp_normalized(f,p,δ;seednum = seednum+i-1)
-        #atomic_add!(ΔyΔpNorm, tmp)
-        #@lock addlock
-        ΔyΔpNorm += tmp
+        @lock addlock ΔyΔpNorm += tmp
     end
     yavg = sum(yall,dims = 2) / nruns
     ΔyΔpNorm /= nruns
