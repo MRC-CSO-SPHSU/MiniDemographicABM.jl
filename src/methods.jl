@@ -41,11 +41,11 @@ function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
         y = fabm(p)
 
         # Multi-level multi-threading
-        addlock = ReentrantLock()
-        @threads for i in 2:nruns
+        # addlock = ReentrantLock()
+        # @threads
+        for i in 2:nruns
             seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum+i-1)
-            #@show threadid()
-            @lock addlock y += fabm(p)
+            y += fabm(p)
         end
         return y / nruns
     end
