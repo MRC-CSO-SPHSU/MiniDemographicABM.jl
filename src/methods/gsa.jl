@@ -21,7 +21,8 @@ function _solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{T}};kwargs.
     return _solve(prob, f, lbs, ubs; kwargs...)
 end
 
-function solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{T}};
+function solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{T}},
+    ::SingleRun=SingleRun();
     kwargs...) where T    # method specific keyword arguments
     return _solve(prob,f,actpars;kwargs...)
 end

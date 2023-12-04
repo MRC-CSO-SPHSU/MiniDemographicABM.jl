@@ -135,6 +135,7 @@ function fabm(pmatrix::Matrix{Float64})
     @assert size(pmatrix)[1] == length(_ACTIVEPARS)
     res = Array{Float64,2}(undef,4,size(pmatrix)[2])
     pr = Progress(size(pmatrix)[2];desc= "Evaluating fabm(pmatrix)...")
+    # lock next!(pr) ?
     @threads for i in 1 : size(pmatrix)[2]
         @inbounds res[:,i] = fabm(@view pmatrix[:,i])
         next!(pr)
@@ -159,16 +160,15 @@ end
 # Step V - fabm-Wrapper for analysis methods
 ###################################################
 
-function solve_fabm(prob::ComputationProblem, actpars::Vector{ActiveParameter{Float64}};
+function solve_fabm(prob::ComputationProblem, actpars::Vector{ActiveParameter{Float64}},
+    rmode::RunMode=SingleRun();
     seednum,
     kwargs...)     # method specific keyword arguments
     _reset_glbvars!(;kwargs...)
     _reset_ACTIVEPARS!(actpars)
     seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
-    return solve(prob,fabm,actpars;seednum,kwargs...)
+    return solve(prob,fabm,actpars,rmode;seednum,kwargs...)
 end
-
-
 
 #########################################################
 # Step VI - Documentation for execution and visualization
@@ -196,6 +196,14 @@ morrisInd = solve_fabm(MorrisProblem(),
            relative_scale = true,
            num_trajectory = 10,
            total_num_trajectory = 500)
+
+# An An ABM simulation function can be sensitive to seed number
+# Another way is to average the outputs over multiple number of times
+# This is done as before with an extra arguments MultipleTime() and nruns:
+morrisInd = solve_fabm(MorrisProblem(), actpars, MultipleRun(); nruns = 10, ....
+
+# For Morris method, multiple execution may be not significant but for other methods
+# s.a. OAT, this seems to be reasonable
 
 # Visualize the result w.r.t. the variable mean_living_age
 scatter(log.(morrisInd.means_star[2,:]), morrisInd.variances[2,:],
