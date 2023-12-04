@@ -22,9 +22,9 @@ function ΔfΔp(f,p,δ::Float64,::RunMode=SingleRun();seednum)
     yall = Array{Float64,2}(undef, ny, np)
     @threads for i in 1:np
       seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
-      yδ = f(p + p[i] * I[1:np,i] * δ)
-      ΔyΔp[:,i] = ( yδ - y ) / δ
-      yall[:,i] = yδ
+      @inbounds yδ = f(p + p[i] * I[1:np,i] * δ)
+      @inbounds ΔyΔp[:,i] = ( yδ - y ) / δ
+      @inbounds yall[:,i] = yδ
     end
     return ΔyΔp, y, yall
 end
@@ -50,7 +50,7 @@ function ΔfΔp_normalized(f,p,δ::Float64, ::MultipleRun; seednum, nruns)
     # Multi-level multi-threading
     addlock = ReentrantLock()
     @threads for i in 2:nruns
-        tmp, yall[:,i] = ΔfΔp_normalized(f,p,δ;seednum = seednum+i-1)
+        @inbounds tmp, yall[:,i] = ΔfΔp_normalized(f,p,δ;seednum = seednum+i-1)
         @lock addlock ΔyΔpNorm += tmp
     end
     yavg = sum(yall,dims = 2) / nruns
@@ -93,7 +93,26 @@ end
 
 function ΔfΔp_normstd(f,p,δ,::MultipleRun;
     seednum,nruns,sampleAlg=SobolSample(),n=length(p)*length(p))
-    # ...
+
+    #=
+    ΔyΔpNorm, y =  ΔfΔp_normstd(f,p,δ;seednum,sampleAlg,n)
+    ny = length(y)
+
+    yall = Array{Float64,2}(undef,ny,nruns)
+    yall[:,1] = y
+    # Multi-level multi-threading
+    addlock = ReentrantLock()
+    @threads for i in 2:nruns
+        @inbounds tmp, yall[:,i] = ΔfΔp_normalized(f,p,δ;seednum = seednum+i-1)
+        @lock addlock ΔyΔpNorm += tmp
+    end
+    yavg = sum(yall,dims = 2) / nruns
+    ΔyΔpNorm /= nruns
+    =#
+
+    return ΔyΔpNorm, yall, yavg
+
+
 end
 
 """
