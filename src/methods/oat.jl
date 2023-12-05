@@ -11,6 +11,16 @@ using LinearAlgebra: I
 
 struct OATProblem <: LSAProblem end
 
+"""
+Parameter sensitivities can not be compared to each other directly without scaling
+their quantities. This can be done by direct scaling or standard diviation of parameters
+and outputs. Below are trait types that distinguish the methods to be used for rescaling
+"""
+abstract type NormalizationAlg end
+struct NoNormalization  <: NormalizationAlg end
+struct ValNormalization <: NormalizationAlg end
+struct StdNormalization <: NormalizationAlg end
+
 "approximation of parameter sensitivities for a vector- (single-valued) function"
 function ΔfΔp(f,p,δ::Float64,::RunMode=SingleRun();seednum)
     myseed!(seednum)
@@ -122,16 +132,20 @@ OAT Result contains:
 
 """
 struct OATResult
-    pnom::Vector{Float64}       # nominal parameter values
-    ytnom::Matrix{Float64}      # trajectories of the output
-    ∂yt∂p::Array{Float64,3}     # trajectories of approximated partial derivatives
-    ∂yt∂pNom::Array{Float64,3}  # normalized
+    pnom::Vector{Float64}      # nominal parameter values
+    ynom::Matrix{Float64}      # trajectories of the output
+    ∂y∂p::Array{Float64,2}     # trajectories of approximated partial derivatives
+    ∂y∂pNom::Array{Float64,2}  # normalized
 
-    function OATResult(ft,actpars,δ)
+    function OATResult(f,actpars,δ)
         pnom = nominal_values(actpars)
-        yt = ft(pnom)
-        # ΔytΔp  = _compute_dytdp(ft,ytnon,pnom,δ)
+        ynom = f(pnom)
+        # ΔytΔp  = _compute_dytdp(f,ytnon,pnom,δ)
         # ΔytΔpNom = _compute_dytdp(ft,ytnom,pnom)
-        new(pnom,nothing,nothing,nothing)
+        new(pnom,ynom,nothing,nothing)
     end
 end
+
+solve(pr::OATProblem, f, actpars::Vector{ActiveParameter{Float64}},  ::SingleRun;
+    seednum, δ, normAlg::NormalizationAlg = NoNormalization(), kwargs...) =
+        OATResult(f, actpars, δ)
