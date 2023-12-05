@@ -13,7 +13,7 @@ struct OATProblem <: LSAProblem end
 
 "approximation of parameter sensitivities for a vector- (single-valued) function"
 function ΔfΔp(f,p,δ::Float64,::RunMode=SingleRun();seednum)
-    seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
+    myseed!(seednum)
     y = f(p)
     @assert typeof(y) == Vector{Float64} || typeof(y) == Float64
     ny = length(y)
@@ -21,7 +21,7 @@ function ΔfΔp(f,p,δ::Float64,::RunMode=SingleRun();seednum)
     ΔyΔp = Array{Float64,2}(undef, ny, np)
     yall = Array{Float64,2}(undef, ny, np)
     @threads for i in 1:np
-      seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
+      myseed!(seednum)
       @inbounds yδ = f(p + p[i] * I[1:np,i] * δ)
       @inbounds ΔyΔp[:,i] = ( yδ - y ) / δ
       @inbounds yall[:,i] = yδ
@@ -82,7 +82,7 @@ function ΔfΔp_normstd(f,p,δ,::RunMode=SingleRun();
     ymatrix = Array{Float64}(undef,ny,n)
      # compute σ_y
     @threads for i in 1:n
-        seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
+        myseed!(seed!)
         @inbounds ymatrix[:,i] = f(pmatrix[:,i])
     end
     σy = [std(ymatrix[i,:]) for i in 1:ny]

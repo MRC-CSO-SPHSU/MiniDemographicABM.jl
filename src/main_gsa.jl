@@ -166,7 +166,7 @@ function solve_fabm(prob::ComputationProblem, actpars::Vector{ActiveParameter{Fl
     kwargs...)     # method specific keyword arguments
     _reset_glbvars!(;kwargs...)
     _reset_ACTIVEPARS!(actpars)
-    seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
+    myseed!(seednum)
     return solve(prob,fabm,actpars,rmode;seednum,kwargs...)
 end
 

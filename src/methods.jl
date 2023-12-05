@@ -4,6 +4,9 @@ Common Computational problem types s.a. global / local sensitivity analysis with
     a subset of model parameters being specified as uncertain active parameters
 """
 
+using Base.Threads
+
+include("./util.jl")
 include("./types/active_pars.jl")
 
 abstract type ComputationProblem end
@@ -37,14 +40,14 @@ function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
     nruns, seednum, kwargs...) where T
 
     function nfabm(p)
-        seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
+        myseed!(seednum)
         y = fabm(p)
 
         # Multi-level multi-threading
         # addlock = ReentrantLock()
         # @threads
         for i in 2:nruns
-            seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum+i-1)
+            myseed!(seednum*i)
             y += fabm(p)
         end
         return y / nruns

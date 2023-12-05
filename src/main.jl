@@ -30,7 +30,7 @@ const model = UKDemographicABM(properties)
 
 # if model seednum is 0 choose a random seed for model initialization, otherwise
 #   apply seeding with the given seed number
-model.seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(model.seednum)
+myseed!(model.seednum)
 
 declare_population!(model)
 init_kinship!(model) # the kinship among population

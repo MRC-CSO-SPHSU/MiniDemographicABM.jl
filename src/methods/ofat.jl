@@ -22,12 +22,11 @@ end
 
 function _compute_ofat_y(f, pmatrix, nruns, seednum)
     println("Evaluating OFAT with $(nruns) runs ...")
-    seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
+    myseed!!(seednum)
     ysum = f(pmatrix)
     for i in 2:nruns
         println("Evaluating OFAT, run # $i ...")
-        seednum == 0 ? Random.seed!(floor(Int,time()) * threadid() + threadid()) :
-                            Random.seed!(seednum+i-1)
+        myseed!(seednum*i) # every iteration executes a different seed
         ysum += f(pmatrix)
     end
     return ysum / nruns
