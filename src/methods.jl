@@ -37,9 +37,14 @@ struct MethodMultiRun <: MultiRun end
 
 "generic API for solving a computational problem"
 solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
-    ::SingleRun=SingleRun();  #default
+    ::RunMode=SingleRun();  #default
     kwargs...) where T = # method specific keyword arguments
-    notimplemented(prob)
+        notimplemented(prob)
+
+"generic API for executing a computational problem multiple number of times"
+solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
+    ::MethodMultiRun; kwargs...) where T =
+        notimplemented(prob)
 
 """
 generic API for solving a computational analysis problem based on a non-determistic
