@@ -96,8 +96,9 @@ function visualize(res::OFATResult,
 end
 
 solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}},::SingleRun;
-    n = 11, seednum, kwargs...) = OFATResult(f,actpars,n,1,seednum)
+    n = 11, seednum, kwargs...) =
+        OFATResult(f,actpars,n,1,seednum)
 
-solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}},::MultipleRun;
+solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}},::FuncMultiRun;
     n=11, nruns, seednum, kwargs...) =
-    OFATResult(f,actpars,n,nruns,seednum)
+        OFATResult(f,actpars,n,nruns,seednum)

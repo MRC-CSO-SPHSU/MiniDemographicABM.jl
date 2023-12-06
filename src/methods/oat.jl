@@ -23,7 +23,7 @@ struct StdNormalization <: NormalizationAlg end
 
 ΔfΔp(f,p,δ::Float64,rmode ::RunMode,nalg::NormalizationAlg;seednum) =
     notimplemented("ΔfΔp with run mode $typeof(rmode) and normalization alg $typeof(nalg) not implemented")
-ΔfΔp(f,p,δ::Float64,::MultipleRun,nalg::NormalizationAlg;seednum,nruns) =
+ΔfΔp(f,p,δ::Float64,::MethodMultiRun,nalg::NormalizationAlg;seednum,nruns) =
     notimplemented("ΔfΔp with multiple run mode and normalization alg $typeof(nalg) not implemented")
 
 "approximation of parameter sensitivities for a vector- (single-valued) function"
@@ -48,7 +48,7 @@ function ΔfΔp(f,p,δ::Float64,
 end
 
 function ΔfΔp(f,p,δ::Float64,
-    ::MultipleRun,::NoNormalization=NoNormalization();  #default
+    ::MethodMultiRun,::NoNormalization=NoNormalization();  #default
     seednum, nruns)
 
     ΔyΔp , y = ΔfΔp(f, p, δ; seednum)
@@ -75,7 +75,7 @@ function ΔfΔp(f,p,δ::Float64,::SingleRun,::ValNormalization; seednum)
 end
 
 "value normalized parameter sensitivities with multiple runs"
-function ΔfΔp(f,p,δ::Float64, ::MultipleRun, ::ValNormalization; seednum, nruns)
+function ΔfΔp(f,p,δ::Float64, ::MethodMultiRun, ::ValNormalization; seednum, nruns)
     # just a first implementation, subject to tuning due to repititive computations
     ΔyΔpNorm, y =  ΔfΔp(f,p,δ,SingleRun(),ValNormalization();seednum)
     ny = length(y)
@@ -126,7 +126,7 @@ function ΔfΔp_normstd(f,p,δ,::RunMode=SingleRun();
 end
 
 
-function ΔfΔp_normstd(f,p,δ,::MultipleRun;
+function ΔfΔp_normstd(f,p,δ,::MethodMultiRun;
     seednum,nruns,sampleAlg=SobolSample(),n=length(p)*length(p))
 
     ΔyΔpNorm, y, _, σy, σp = ΔfΔp_normstd(f,p,δ;seednum,sampleAlg,n)

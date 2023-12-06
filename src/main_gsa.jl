@@ -200,7 +200,7 @@ morrisInd = solve_fabm(MorrisProblem(),
 # An An ABM simulation function can be sensitive to seed number
 # Another way is to average the outputs over multiple number of times
 # This is done as before with an extra arguments MultipleTime() and nruns:
-morrisInd = solve_fabm(MorrisProblem(), actpars, MultipleRun(); nruns = 10, ....
+morrisInd = solve_fabm(MorrisProblem(), actpars, FuncMultiRun(); nruns = 10, ....
 
 # For Morris method, multiple execution may be not significant but for other methods
 # s.a. OAT, this seems to be reasonable

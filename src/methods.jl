@@ -18,12 +18,22 @@ notimplemented(prob::ComputationProblem) = error("$(typeof(prob)) not implemente
 
 """
 Simulations of ABMs are not determinstic, i.e. different seeds lead to different
-results. Thus, it might be useful to apply specific computational analysis to multiple runs
-with different seed numbers and consider the avergae values of the results
+results. Thus, it might be useful to apply specific computational analysis multiple
+number of times either by
+i. executing the simulation function multiple times each with different seed number
+   and taking the average result as input to the method
+ii. executing the method multiple number of times each applied to different seed number
+
+The better choice depends on the method runtime efficiency. The two choices are not
+necessarily symmetric. Merging the two choices is also imaginable, i.e. executing the
+method multiple number of times each on multiple evaluations of functions. To be implemented
+if ever needed.
 """
 abstract type RunMode end
 struct SingleRun <: RunMode end   # default
-struct MultipleRun <: RunMode end
+abstract type MultiRun end
+struct FuncMultiRun <: MultiRun end
+struct MethodMultiRun <: MultiRun end
 
 "generic API for solving a computational problem"
 solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
@@ -36,7 +46,7 @@ generic API for solving a computational analysis problem based on a non-determis
     function. The outputs are averaged by executing the function multiple number of times
 """
 function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
-    ::MultipleRun;
+    ::FuncMultiRun;
     nruns, seednum, kwargs...) where T
 
     function nfabm(p)
