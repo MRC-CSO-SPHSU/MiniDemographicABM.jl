@@ -199,8 +199,8 @@ morrisInd = solve_fabm(MorrisProblem(),
 
 # An An ABM simulation function can be sensitive to seed number
 # Another way is to average the outputs over multiple number of times
-# This is done as before with an extra arguments MultipleTime() and nruns:
-morrisInd = solve_fabm(MorrisProblem(), actpars, FuncMultiRun(); nruns = 10, ....
+# This is done as before with an extra arguments MultipleTime() and fruns:
+morrisInd = solve_fabm(MorrisProblem(), actpars, FuncMultiRun(); fruns = 10, ....
 
 # For Morris method, multiple execution may be not significant but for other methods
 # s.a. OAT, this seems to be reasonable
@@ -262,7 +262,7 @@ ofatres = solve_fabm(OFATProblem(), actpars;
     initialpop = 3_000,
     seednum = 1,
     ...
-    nruns = 10);
+    fruns = 10);
 
 ylabels = [ "ratio(singles)" , "mean_livings_age", "ratio(males)", "ratio(children)" ] ;
 plts = visualize(ofatres,actpars,ylabels) ;

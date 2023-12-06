@@ -20,16 +20,16 @@ function _compute_ofat_p(actpars,pnom,n)
 end
 
 
-function _compute_ofat_y(f, pmatrix, nruns, seednum)
-    println("Evaluating OFAT with $(nruns) runs ...")
+function _compute_ofat_y(f, pmatrix, fruns, seednum)
+    println("Evaluating OFAT with $(fruns) runs ...")
     myseed!!(seednum)
     ysum = f(pmatrix)
-    for i in 2:nruns
+    for i in 2:fruns
         println("Evaluating OFAT, run # $i ...")
         myseed!(seednum*i) # every iteration executes a different seed
         ysum += f(pmatrix)
     end
-    return ysum / nruns
+    return ysum / fruns
 end
 
 """
@@ -46,11 +46,11 @@ struct OFATResult
     y::Matrix{Float64}
     ynom::Vector{Float64}
 
-    function OFATResult(f,actpars,n,nruns,seednum)
+    function OFATResult(f,actpars,n,fruns,seednum)
         pnom = nominal_values(actpars)
         pmatrix = _compute_ofat_p(actpars,pnom,n)
         ynom = f(pnom)
-        y = _compute_ofat_y(f, pmatrix,nruns,seednum)
+        y = _compute_ofat_y(f, pmatrix,fruns,seednum)
         new(pmatrix,pnom,y,ynom)
     end
 
@@ -100,5 +100,5 @@ solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}},::SingleRun;
         OFATResult(f,actpars,n,1,seednum)
 
 solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}},::FuncMultiRun;
-    n=11, nruns, seednum, kwargs...) =
-        OFATResult(f,actpars,n,nruns,seednum)
+    n=11, fruns, seednum, kwargs...) =
+        OFATResult(f,actpars,n,fruns,seednum)

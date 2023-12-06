@@ -23,7 +23,7 @@ struct StdNormalization <: NormalizationAlg end
 
 ΔfΔp(f,p,δ::Float64,rmode ::RunMode,nalg::NormalizationAlg;seednum) =
     notimplemented("ΔfΔp with run mode $typeof(rmode) and normalization alg $typeof(nalg) not implemented")
-ΔfΔp(f,p,δ::Float64,::MethodMultiRun,nalg::NormalizationAlg;seednum,nruns) =
+ΔfΔp(f,p,δ::Float64,::MethodMultiRun,nalg::NormalizationAlg;seednum,mruns) =
     notimplemented("ΔfΔp with multiple run mode and normalization alg $typeof(nalg) not implemented")
 
 "approximation of parameter sensitivities for a vector- (single-valued) function"
@@ -49,16 +49,16 @@ end
 
 function ΔfΔp(f,p,δ::Float64,
     ::MethodMultiRun,::NoNormalization=NoNormalization();  #default
-    seednum, nruns)
+    seednum, mruns)
 
     ΔyΔp , y = ΔfΔp(f, p, δ; seednum)
-    for i in 2:nruns
+    for i in 2:mruns
         ΔtmpΔp , tmp = ΔfΔp(f, p, δ; seednum = seednum * i)
         ΔyΔp += ΔtmpΔp
         y += tmp
     end
-    ΔyΔp /= nruns
-    y /= nruns
+    ΔyΔp /= mruns
+    y /= mruns
 
     return ΔyΔp , y
 end
@@ -75,21 +75,21 @@ function ΔfΔp(f,p,δ::Float64,::SingleRun,::ValNormalization; seednum)
 end
 
 "value normalized parameter sensitivities with multiple runs"
-function ΔfΔp(f,p,δ::Float64, ::MethodMultiRun, ::ValNormalization; seednum, nruns)
+function ΔfΔp(f,p,δ::Float64, ::MethodMultiRun, ::ValNormalization; seednum, mruns)
     # just a first implementation, subject to tuning due to repititive computations
     ΔyΔpNorm, y =  ΔfΔp(f,p,δ,SingleRun(),ValNormalization();seednum)
     ny = length(y)
-    yall = Array{Float64,2}(undef,ny,nruns)
+    yall = Array{Float64,2}(undef,ny,mruns)
     yall[:,1] = y
     # Multi-level multi-threading improves performance by ~ 30%
     addlock = ReentrantLock()
-    @threads for i in 2:nruns
+    @threads for i in 2:mruns
         @inbounds tmp, yall[:,i] =
             ΔfΔp(f,p,δ,SingleRun(),ValNormalization();seednum = seednum * i)
         @lock addlock ΔyΔpNorm += tmp
     end
-    yavg = sum(yall,dims = 2) / nruns
-    ΔyΔpNorm /= nruns
+    yavg = sum(yall,dims = 2) / mruns
+    ΔyΔpNorm /= mruns
     return ΔyΔpNorm, yall, yavg
 end
 
@@ -127,23 +127,23 @@ end
 
 
 function ΔfΔp_normstd(f,p,δ,::MethodMultiRun;
-    seednum,nruns,sampleAlg=SobolSample(),n=length(p)*length(p))
+    seednum,mruns,sampleAlg=SobolSample(),n=length(p)*length(p))
 
     ΔyΔpNorm, y, _, σy, σp = ΔfΔp_normstd(f,p,δ;seednum,sampleAlg,n)
 
     ny = length(y)
-    yall = Array{Float64,2}(undef,ny,nruns)
+    yall = Array{Float64,2}(undef,ny,mruns)
     yall[:,1] = y
 
     # Multi-level multi-threading
     addlock = ReentrantLock()
-    @threads for i in 2:nruns
+    @threads for i in 2:mruns
         tmp, yall[:,i] = ΔfΔp(f,p,δ;seednum=seednum+i-1)
         _normalize_std!(tmp,σp,σy)
         @lock addlock ΔyΔpNorm += tmp
     end
-    yavg = sum(yall,dims = 2) / nruns
-    ΔyΔpNorm /= nruns
+    yavg = sum(yall,dims = 2) / mruns
+    ΔyΔpNorm /= mruns
 
     return ΔyΔpNorm, yall, yavg, σy, σp
 end

@@ -52,7 +52,7 @@ generic API for solving a computational analysis problem based on a non-determis
 """
 function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
     ::FuncMultiRun;
-    nruns, seednum, kwargs...) where T
+    fruns, seednum, kwargs...) where T
 
     function nfabm(p)
         myseed!(seednum)
@@ -61,11 +61,11 @@ function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
         # Multi-level multi-threading
         # addlock = ReentrantLock()
         # @threads
-        for i in 2:nruns
+        for i in 2:fruns
             myseed!(seednum*i)
             y += fabm(p)
         end
-        return y / nruns
+        return y / fruns
     end
 
     return solve(prob,nfabm,actpars,SingleRun();seednum,kwargs...)
