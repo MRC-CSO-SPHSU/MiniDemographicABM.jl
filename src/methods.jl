@@ -53,7 +53,7 @@ function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
         return y / nruns
     end
 
-    return solve(prob,nfabm,actpars,SingleRun();seednum,kwargs)
+    return solve(prob,nfabm,actpars,SingleRun();seednum,kwargs...)
 end
 include("./methods/gsa.jl")     # GSA methods from GlobalSensitivity.jl
 include("./methods/ofat.jl")    # One Factor At Time LSA method
