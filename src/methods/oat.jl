@@ -51,16 +51,18 @@ function ΔfΔp(f,p,δ::Float64,
     ::MethodMultiRun,::NoNormalization=NoNormalization();  #default
     seednum, mruns)
 
-    ΔyΔp , y = ΔfΔp(f, p, δ; seednum)
+    ΔyΔp , y, yall = ΔfΔp(f, p, δ; seednum)
     for i in 2:mruns
-        ΔtmpΔp , tmp = ΔfΔp(f, p, δ; seednum = seednum * i)
+        ΔtmpΔp , tmp, tmpall = ΔfΔp(f, p, δ; seednum = seednum * i)
         ΔyΔp += ΔtmpΔp
         y += tmp
+        yall += tmpall
     end
     ΔyΔp /= mruns
     y /= mruns
+    yall /= mruns
 
-    return ΔyΔp , y
+    return ΔyΔp , y, yall
 end
 
 "value normalized parameter sensitivities"
@@ -163,15 +165,19 @@ struct OATResult
     ∂y∂p::Matrix{Float64}     # trajectories of approximated partial derivatives
     ∂y∂pNor::Matrix{Float64}  # normalized
 
-    function OATResult(f,actpars,δ,seednum,rmode::RunMode,::NoNormalization)
+    function OATResult(f,actpars,δ,rmode::RunMode,::NoNormalization;kwargs...)
         pnom = nominal_values(actpars)
-        ΔyΔp, ynom, yall  = ΔfΔp(f,pnom,δ,rmode;seednum)
+        ΔyΔp, ynom, yall  = ΔfΔp(f,pnom,δ,rmode;kwargs...)
         new(pnom,ynom,yall,ΔyΔp,zeros(1,1))
     end
-end
+end # OATResult
 
-solve(pr::OATProblem, f, actpars::Vector{ActiveParameter{Float64}},  ::SingleRun;
-    seednum, δ, normAlg::NormalizationAlg = NoNormalization(), kwargs...) =
-        OATResult(f, actpars, δ, seednum, SingleRun(), normAlg)
+solve(::OATProblem, f, actpars::Vector{ActiveParameter{Float64}}, ::SingleRun;
+    δ, normAlg::NormalizationAlg = NoNormalization(), seednum) =
+        OATResult(f, actpars, δ, SingleRun(), normAlg; seednum)
+
+solve(::OATProblem, f, actpars::Vector{ActiveParameter{Float64}}, ::MethodMultiRun;
+    δ, normAlg::NormalizationAlg = NoNormalization(), seednum, mruns) =
+        OATResult(f, actpars, δ, MethodMultiRun(), normAlg; seednum, mruns)
 
 # normalize!(::OATResult,::ValNormalization)
