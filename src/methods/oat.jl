@@ -47,28 +47,6 @@ function ΔfΔp(f,p,δ::Float64,
     return ΔyΔp, y, yall
 end
 
-function ΔfΔp(f,p,δ::Float64,
-    ::MethodMultiRun,::NoNormalization=NoNormalization();  #default
-    seednum, mruns)
-
-    ΔyΔp , y, yall = ΔfΔp(f, p, δ; seednum)
-
-    addlock = ReentrantLock()
-    @threads for i in 2:mruns
-        ΔtmpΔp , tmp, tmpall = ΔfΔp(f, p, δ; seednum = seednum * i)
-        @lock addlock begin
-            ΔyΔp += ΔtmpΔp
-            y += tmp
-            yall += tmpall
-        end
-    end
-    ΔyΔp /= mruns
-    y /= mruns
-    yall /= mruns
-
-    return ΔyΔp , y, yall
-end
-
 "value normalized parameter sensitivities"
 function ΔfΔp(f,p,δ::Float64,::SingleRun,::ValNormalization; seednum)
     ΔyΔp , y, yall = ΔfΔp(f,p,δ;seednum)

@@ -41,11 +41,6 @@ solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
     kwargs...) where T = # method specific keyword arguments
         notimplemented(prob)
 
-"generic API for executing a computational problem multiple number of times"
-solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
-    ::MethodMultiRun; kwargs...) where T =
-        notimplemented(prob)
-
 """
 generic API for solving a computational analysis problem based on a non-determistic
     function. The outputs are averaged by executing the function multiple number of times
