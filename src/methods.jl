@@ -48,13 +48,12 @@ generic API for solving a computational analysis problem based on a non-determis
 """
 function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
     ::FuncMultiRun;
-    fruns, seednum, kwargs...) where T
+    runpar::Bool, fruns, seednum, kwargs...) where T
 
-    function fn(p)
+    "run f fruns times in parallel"
+    function parfn(p)
         myseed!(seednum)
         y = f(p)
-
-        # Multi-level multi-threading
         addlock = ReentrantLock()
         @threads for i in 2:fruns
             myseed!(seednum*i)
@@ -63,8 +62,20 @@ function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
         end
         return y / fruns
     end
+    "run f fruns times sequentially"
+    function seqfn(p)
+        myseed!(seednum)
+        y = f(p)
+        for i in 2:fruns
+            myseed!(seednum*i)
+            y += f(p)
+        end
+        return y / fruns
+    end
+    # which method to choose
+    fn(runpar::Bool) = runpar && nthreads() > 1 ? parfn : seqfn
 
-    return solve(prob,fn,actpars,SingleRun();seednum,kwargs...)
+    return solve(prob,fn(runpar),actpars,SingleRun();seednum,kwargs...)
 end
 
 """
@@ -74,18 +85,26 @@ generic API for solving a computational analysis problem based on a non-determis
 """
 function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
     ::MethodMultiRun;
-    mruns, seednum, kwargs...) where T
+    runpar::Bool, mruns, seednum, kwargs...) where T
 
     ret = solve(prob, f, actpars, SingleRun(); seednum, kwargs...)
-    addlock = ReentrantLock()
 
-    @threads for i in 2:mruns
-        tmp = solve(prob, f, actpars, SingleRun(); seednum = seednum*i, kwargs...)
-        @lock addlock for sym in fieldnames(typeof(ret))
-            setfield!(ret, sym, getfield(tmp,sym) + getfield(ret,sym))
+    if runpar && nthreads() > 1 # run the method mruns times in parallel
+        addlock = ReentrantLock()
+        @threads for i in 2:mruns
+            tmp = solve(prob, f, actpars, SingleRun(); seednum = seednum*i, kwargs...)
+            @lock addlock for sym in fieldnames(typeof(ret))
+                setfield!(ret, sym, getfield(tmp,sym) + getfield(ret,sym))
+            end
+        end
+    else # run the method mruns times sequentially
+        for i in 2:mruns
+            tmp = solve(prob, f, actpars, SingleRun(); seednum = seednum*i, kwargs...)
+            for sym in fieldnames(typeof(ret))
+                setfield!(ret, sym, getfield(tmp,sym) + getfield(ret,sym))
+            end
         end
     end
-
     for sym in fieldnames(typeof(ret))
         setfield!(ret, sym, getfield(ret,sym) / mruns )
     end
