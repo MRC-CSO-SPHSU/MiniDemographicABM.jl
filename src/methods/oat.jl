@@ -52,11 +52,15 @@ function ΔfΔp(f,p,δ::Float64,
     seednum, mruns)
 
     ΔyΔp , y, yall = ΔfΔp(f, p, δ; seednum)
-    for i in 2:mruns
+
+    addlock = ReentrantLock()
+    @threads for i in 2:mruns
         ΔtmpΔp , tmp, tmpall = ΔfΔp(f, p, δ; seednum = seednum * i)
-        ΔyΔp += ΔtmpΔp
-        y += tmp
-        yall += tmpall
+        @lock addlock begin
+            ΔyΔp += ΔtmpΔp
+            y += tmp
+            yall += tmpall
+        end
     end
     ΔyΔp /= mruns
     y /= mruns
@@ -158,7 +162,7 @@ OAT Result contains:
     ny: number of outputs
 
 """
-struct OATResult
+mutable struct OATResult
     pnom::Vector{Float64}      # nominal parameter values
     ynom::Vector{Float64}      # trajectories of the output
     yall::Matrix{Float64}      # trajectories of the outputs with deviated parameters
@@ -175,9 +179,5 @@ end # OATResult
 solve(::OATProblem, f, actpars::Vector{ActiveParameter{Float64}}, ::SingleRun;
     δ, normAlg::NormalizationAlg = NoNormalization(), seednum) =
         OATResult(f, actpars, δ, SingleRun(), normAlg; seednum)
-
-solve(::OATProblem, f, actpars::Vector{ActiveParameter{Float64}}, ::MethodMultiRun;
-    δ, normAlg::NormalizationAlg = NoNormalization(), seednum, mruns) =
-        OATResult(f, actpars, δ, MethodMultiRun(), normAlg; seednum, mruns)
 
 # normalize!(::OATResult,::ValNormalization)

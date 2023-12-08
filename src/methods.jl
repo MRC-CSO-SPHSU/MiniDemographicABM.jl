@@ -49,27 +49,56 @@ solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
 """
 generic API for solving a computational analysis problem based on a non-determistic
     function. The outputs are averaged by executing the function multiple number of times
+    each with a different seed number
 """
 function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
     ::FuncMultiRun;
     fruns, seednum, kwargs...) where T
 
-    function nfabm(p)
+    function fn(p)
         myseed!(seednum)
-        y = fabm(p)
+        y = f(p)
 
         # Multi-level multi-threading
-        # addlock = ReentrantLock()
-        # @threads
-        for i in 2:fruns
+        addlock = ReentrantLock()
+        @threads for i in 2:fruns
             myseed!(seednum*i)
-            y += fabm(p)
+            tmp = f(p)
+            @lock addlock y += tmp
         end
         return y / fruns
     end
 
-    return solve(prob,nfabm,actpars,SingleRun();seednum,kwargs...)
+    return solve(prob,fn,actpars,SingleRun();seednum,kwargs...)
 end
+
+"""
+generic API for solving a computational analysis problem based on a non-determistic
+    function. The outputs are averaged by executing the method multiple number of times
+    each with a different seed number
+"""
+function solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}},
+    ::MethodMultiRun;
+    mruns, seednum, kwargs...) where T
+
+    ret = solve(prob, f, actpars, SingleRun(); seednum, kwargs...)
+    addlock = ReentrantLock()
+
+    @threads for i in 2:mruns
+        tmp = solve(prob, f, actpars, SingleRun(); seednum = seednum*i, kwargs...)
+        @lock addlock for sym in fieldnames(typeof(ret))
+            setfield!(ret, sym, getfield(tmp,sym) + getfield(ret,sym))
+        end
+    end
+
+    for sym in fieldnames(typeof(ret))
+        setfield!(ret, sym, getfield(ret,sym) / mruns )
+    end
+
+    return ret
+end
+
+
 include("./methods/gsa.jl")     # GSA methods from GlobalSensitivity.jl
 include("./methods/ofat.jl")    # One Factor At Time LSA method
 include("./methods/oat.jl")     # One At Time derivative-based LSA Method
