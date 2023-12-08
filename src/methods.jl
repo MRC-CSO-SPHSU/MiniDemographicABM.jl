@@ -31,7 +31,7 @@ if ever needed.
 """
 abstract type RunMode end
 struct SingleRun <: RunMode end   # default
-abstract type MultiRun end
+abstract type MultiRun <: RunMode end
 struct FuncMultiRun <: MultiRun end
 struct MethodMultiRun <: MultiRun end
 
