@@ -37,14 +37,14 @@ function ΔfΔp(f,pnom,δ::Float64,
     ny = length(ynom)
     np = length(pnom)
     ΔyΔp = Array{Float64,2}(undef, ny, np)
-    yall = Array{Float64,2}(undef, ny, np)
+    yδall = Array{Float64,2}(undef, ny, np)
     @threads for i in 1:np
       myseed!(seednum)
       @inbounds yδ = f(pnom + pnom[i] * I[1:np,i] * δ)
       @inbounds ΔyΔp[:,i] = ( yδ - ynom ) / δ
-      @inbounds yall[:,i] = yδ
+      @inbounds yδall[:,i] = yδ
     end
-    return ΔyΔp, ynom, yall
+    return ΔyΔp, ynom, yδall
 end
 
 function _normalize(ΔyΔp, ynom, pnom, ::ValNormalization)
@@ -58,28 +58,9 @@ end
 
 "value normalized parameter sensitivities"
 function ΔfΔp(f,pnom,δ::Float64,::SingleRun,::ValNormalization; seednum)
-    ΔyΔp , ynom, yall = ΔfΔp(f,pnom,δ;seednum)
+    ΔyΔp , ynom, yδall = ΔfΔp(f,pnom,δ;seednum)
     ΔyΔpNorm = _normalize(ΔyΔp,ynom,pnom,ValNormalization())
-    return ΔyΔpNorm, ΔyΔp, ynom, yall
-end
-
-"value normalized parameter sensitivities with multiple runs"
-function ΔfΔp(f,p,δ::Float64, ::MethodMultiRun, ::ValNormalization; seednum, mruns)
-    # just a first implementation, subject to tuning due to repititive computations
-    ΔyΔpNorm, ΔyΔp, y, _ =  ΔfΔp(f,p,δ,SingleRun(),ValNormalization();seednum)
-    ny = length(y)
-    ynomall = Array{Float64,2}(undef,ny,mruns)
-    ynomall[:,1] = y
-    # Multi-level multi-threading improves performance by ~ 30%
-    addlock = ReentrantLock()
-    @threads for i in 2:mruns
-        @inbounds tmp, _, ynomall[:,i], _ =
-            ΔfΔp(f,p,δ,SingleRun(),ValNormalization();seednum = seednum * i)
-        @lock addlock ΔyΔpNorm += tmp
-    end
-    yavg = sum(ynomall,dims = 2) / mruns
-    ΔyΔpNorm /= mruns
-    return ΔyΔpNorm, ynomall, yavg
+    return ΔyΔpNorm, ΔyΔp, ynom, yδall
 end
 
 function _normalize_std!(ΔyΔpNorm,σp,σy)
@@ -157,7 +138,18 @@ mutable struct OATResult
         ΔyΔp, ynom, yall  = ΔfΔp(f,pnom,δ;kwargs...)
         new(pnom,ynom,yall,ΔyΔp,zeros(1,1))
     end
+
+    function OATResult(f, actpars, δ,::ValNormalization;kwargs...)
+        oatres = OATResult(f,actpars,δ,NoNormalization();kwargs...)
+        normalize!(oatres,ValNormalization())
+        return oatres
+    end
 end # OATResult
+
+function normalize!(oatres::OATResult,::ValNormalization)
+    oatres.∂y∂pNor = _normalize(oatres.∂y∂p, oatres.ynom, oatres.pnom, ValNormalization())
+    return nothing
+end
 
 solve(::OATProblem, f, actpars::Vector{ActiveParameter{Float64}}, ::SingleRun;
     δ, normAlg::NormalizationAlg = NoNormalization(), seednum) =
