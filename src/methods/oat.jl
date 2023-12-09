@@ -27,54 +27,59 @@ struct StdNormalization <: NormalizationAlg end
     notimplemented("ΔfΔp with multiple run mode and normalization alg $typeof(nalg) not implemented")
 
 "approximation of parameter sensitivities for a vector- (single-valued) function"
-function ΔfΔp(f,p,δ::Float64,
+function ΔfΔp(f,pnom,δ::Float64,
         ::SingleRun=SingleRun(),::NoNormalization=NoNormalization();  #default
         seednum)
 
     myseed!(seednum)
-    y = f(p)
-    @assert typeof(y) == Vector{Float64} || typeof(y) == Float64
-    ny = length(y)
-    np = length(p)
+    ynom = f(pnom)
+    @assert typeof(ynom) == Vector{Float64} || typeof(ynom) == Float64
+    ny = length(ynom)
+    np = length(pnom)
     ΔyΔp = Array{Float64,2}(undef, ny, np)
     yall = Array{Float64,2}(undef, ny, np)
     @threads for i in 1:np
       myseed!(seednum)
-      @inbounds yδ = f(p + p[i] * I[1:np,i] * δ)
-      @inbounds ΔyΔp[:,i] = ( yδ - y ) / δ
+      @inbounds yδ = f(pnom + pnom[i] * I[1:np,i] * δ)
+      @inbounds ΔyΔp[:,i] = ( yδ - ynom ) / δ
       @inbounds yall[:,i] = yδ
     end
-    return ΔyΔp, y, yall
+    return ΔyΔp, ynom, yall
+end
+
+function _normalize(ΔyΔp, ynom, pnom, ::ValNormalization)
+    ΔyΔpNorm = copy(ΔyΔp)
+    ny = length(ynom)
+    @simd for i in 1:ny
+        @inbounds ΔyΔpNorm[i,:] =  pnom .* ( ΔyΔpNorm[i,:] / ynom[i] )
+    end
+    return ΔyΔpNorm
 end
 
 "value normalized parameter sensitivities"
-function ΔfΔp(f,p,δ::Float64,::SingleRun,::ValNormalization; seednum)
-    ΔyΔp , y, yall = ΔfΔp(f,p,δ;seednum)
-    ΔyΔpNorm = copy(ΔyΔp)
-    ny = length(y)
-    @simd for i in 1:ny
-        @inbounds ΔyΔpNorm[i,:] =  p .* ( ΔyΔpNorm[i,:] / y[i] )
-    end
-    return ΔyΔpNorm, y, ΔyΔp, yall
+function ΔfΔp(f,pnom,δ::Float64,::SingleRun,::ValNormalization; seednum)
+    ΔyΔp , ynom, yall = ΔfΔp(f,pnom,δ;seednum)
+    ΔyΔpNorm = _normalize(ΔyΔp,ynom,pnom,ValNormalization())
+    return ΔyΔpNorm, ΔyΔp, ynom, yall
 end
 
 "value normalized parameter sensitivities with multiple runs"
 function ΔfΔp(f,p,δ::Float64, ::MethodMultiRun, ::ValNormalization; seednum, mruns)
     # just a first implementation, subject to tuning due to repititive computations
-    ΔyΔpNorm, y =  ΔfΔp(f,p,δ,SingleRun(),ValNormalization();seednum)
+    ΔyΔpNorm, ΔyΔp, y, _ =  ΔfΔp(f,p,δ,SingleRun(),ValNormalization();seednum)
     ny = length(y)
-    yall = Array{Float64,2}(undef,ny,mruns)
-    yall[:,1] = y
+    ynomall = Array{Float64,2}(undef,ny,mruns)
+    ynomall[:,1] = y
     # Multi-level multi-threading improves performance by ~ 30%
     addlock = ReentrantLock()
     @threads for i in 2:mruns
-        @inbounds tmp, yall[:,i] =
+        @inbounds tmp, _, ynomall[:,i], _ =
             ΔfΔp(f,p,δ,SingleRun(),ValNormalization();seednum = seednum * i)
         @lock addlock ΔyΔpNorm += tmp
     end
-    yavg = sum(yall,dims = 2) / mruns
+    yavg = sum(ynomall,dims = 2) / mruns
     ΔyΔpNorm /= mruns
-    return ΔyΔpNorm, yall, yavg
+    return ΔyΔpNorm, ynomall, yavg
 end
 
 function _normalize_std!(ΔyΔpNorm,σp,σy)
@@ -147,15 +152,15 @@ mutable struct OATResult
     ∂y∂p::Matrix{Float64}     # trajectories of approximated partial derivatives
     ∂y∂pNor::Matrix{Float64}  # normalized
 
-    function OATResult(f,actpars,δ,rmode::RunMode,::NoNormalization;kwargs...)
+    function OATResult(f,actpars,δ,::NoNormalization;kwargs...)
         pnom = nominal_values(actpars)
-        ΔyΔp, ynom, yall  = ΔfΔp(f,pnom,δ,rmode;kwargs...)
+        ΔyΔp, ynom, yall  = ΔfΔp(f,pnom,δ;kwargs...)
         new(pnom,ynom,yall,ΔyΔp,zeros(1,1))
     end
 end # OATResult
 
 solve(::OATProblem, f, actpars::Vector{ActiveParameter{Float64}}, ::SingleRun;
     δ, normAlg::NormalizationAlg = NoNormalization(), seednum) =
-        OATResult(f, actpars, δ, SingleRun(), normAlg; seednum)
+        OATResult(f, actpars, δ, normAlg; seednum)
 
 # normalize!(::OATResult,::ValNormalization)
