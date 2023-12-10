@@ -73,22 +73,6 @@ function _normalize(ΔyΔp,σp,σy,::StdNormalization)
     return ΔyΔpNor
 end
 
-"Evaluate stdandard diviation of function inputs and outputs"
-function evaluate_stddiv(f, ny, actpars, seednum,
-                            n=length(actpars)*length(actpars), sampleAlg = SobolSample())
-
-    σp = std(actpars)
-    pmatrix = sample(n,actpars,sampleAlg)  # design matrix
-    ymatrix = Array{Float64}(undef,ny,n)
-     # compute σ_y
-    @threads for i in 1:n
-        myseed!(seednum)
-        @inbounds ymatrix[:,i] = f(pmatrix[:,i])
-    end
-    σy = [std(ymatrix[i,:]) for i in 1:ny]
-    return σp, σy, pmatrix, ymatrix
-end
-
 """
 parameter sensitivities normalized with standard diviations
     - of parameters derived from a uniform distribution
@@ -133,7 +117,6 @@ mutable struct OATResult
 
     function OATResult(f, actpars, δ, ::StdNormalization; σp, σy, kwargs...)
         oatres = OATResult(f,actpars,δ,NoNormalization(); kwargs...)
-        # σp, σy = evaluate_stddiv(f, length(oatres.ynom), actpars, seednum, n, samlpleAlg)
         normalize!(oatres,σp,σy,StdNormalization())
         return oatres
     end

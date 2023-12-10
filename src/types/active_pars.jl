@@ -49,3 +49,19 @@ sample(n,apars::Vector{ActiveParameter{T}}, sampleAlg  ) where T =
 "standard diviation of uncertain parameter derived from a uniform distribution"
 std(apar::ActiveParameter{T}) where T = (apar.upperbound - apar.lowerbound)^2 / 12
 std(apars::Vector{ActiveParameter{T}}) where T =  [std(ap) for ap in apars]
+
+"Evaluate stdandard diviation of function inputs and outputs"
+function std(f, ny, actpars::Vector{ActiveParameter{T}}, seednum,
+                n=length(actpars)*length(actpars), sampleAlg = SobolSample()) where T
+
+    σp = std(actpars)
+    pmatrix = sample(n,actpars,sampleAlg)  # design matrix
+    ymatrix = Array{Float64}(undef,ny,n)
+     # compute σ_y
+    @threads for i in 1:n
+        myseed!(seednum)
+        @inbounds ymatrix[:,i] = f(pmatrix[:,i])
+    end
+    σy = [std(ymatrix[i,:]) for i in 1:ny]
+    return σp, σy, pmatrix, ymatrix
+end
