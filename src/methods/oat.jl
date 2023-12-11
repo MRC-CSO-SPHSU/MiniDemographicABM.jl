@@ -21,10 +21,8 @@ struct NoNormalization  <: NormalizationAlg end
 struct ValNormalization <: NormalizationAlg end
 struct StdNormalization <: NormalizationAlg end
 
-ΔfΔp(f,p,δ,rmode ::RunMode,nalg::NormalizationAlg;seednum) =
+ΔfΔp(f,p,δ,rmode ::RunMode,nalg::NormalizationAlg; kwargs...) =
     notimplemented("ΔfΔp with run mode $typeof(rmode) and normalization alg $typeof(nalg) not implemented")
-ΔfΔp(f,p,δ,::MethodMultiRun,nalg::NormalizationAlg;seednum,mruns) =
-    notimplemented("ΔfΔp with multiple run mode and normalization alg $typeof(nalg) not implemented")
 
 "approximation of parameter sensitivities for a vector- (single-valued) function"
 function ΔfΔp(f,pnom,δ::Float64,
