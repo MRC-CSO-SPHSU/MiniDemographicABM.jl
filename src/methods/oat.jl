@@ -21,13 +21,15 @@ struct NoNormalization  <: NormalizationAlg end
 struct ValNormalization <: NormalizationAlg end
 struct StdNormalization <: NormalizationAlg end
 
-ΔfΔp(f,p,δ,rmode ::RunMode,nalg::NormalizationAlg; kwargs...) =
+ΔfΔp(f,p,δ,
+        nalg::NormalizationAlg=NoNormalization(),rmode ::RunMode = SingleRun(); #default
+        kwargs...) =
     notimplemented("ΔfΔp with run mode $typeof(rmode) and normalization alg $typeof(nalg) not implemented")
 
 "approximation of parameter sensitivities for a vector- (single-valued) function"
 function ΔfΔp(f,pnom,δ::Float64,
-        ::SingleRun=SingleRun(),::NoNormalization=NoNormalization();  #default
-        seednum)
+                ::NoNormalization=NoNormalization(), ::SingleRun=SingleRun();  #default
+                seednum)
 
     myseed!(seednum)
     ynom = f(pnom)
@@ -55,7 +57,7 @@ function _normalize(ΔyΔp, pnom, ynom, ::ValNormalization)
 end
 
 "value normalized parameter sensitivities"
-function ΔfΔp(f,pnom,δ::Float64,::SingleRun,::ValNormalization; seednum)
+function ΔfΔp(f,pnom,δ::Float64,::ValNormalization,rmode::SingleRun=SingleRun(); seednum)
     ΔyΔp , ynom, yδall = ΔfΔp(f,pnom,δ;seednum)
     ΔyΔpNorm = _normalize(ΔyΔp,pnom,ynom,ValNormalization())
     return ΔyΔpNorm, ΔyΔp, ynom, yδall
@@ -76,8 +78,9 @@ parameter sensitivities normalized with standard diviations
     - of parameters derived from a uniform distribution
     - of model outputs computed via a design matrix
 """
-function ΔfΔp(f,pnom,δ::Float64,::SingleRun,::StdNormalization;seednum, σp, σy)
-                #actpars,seednum,sampleAlg=SobolSample(),n=length(p)*length(p))
+function ΔfΔp(f,pnom,δ::Float64,::StdNormalization, rmode::SingleRun=SingleRun();
+    seednum, σp, σy)
+
     # approximate derivatives
     ΔyΔp, ynom, yδall = ΔfΔp(f,pnom,δ;seednum)
     # normalization
@@ -101,20 +104,20 @@ mutable struct OATResult
     ∂y∂p::Matrix{Float64}     # trajectories of approximated partial derivatives
     ∂y∂pNor::Matrix{Float64}  # normalized
 
-    function OATResult(f,actpars,δ,::NoNormalization;kwargs...)
+    function OATResult(f, actpars, δ, ::NoNormalization=NoNormalization(); kwargs...)
         pnom = nominal_values(actpars)
         ΔyΔp, ynom, yall  = ΔfΔp(f,pnom,δ;kwargs...)
         new(pnom,ynom,yall,ΔyΔp,zeros(1,1))
     end
 
-    function OATResult(f, actpars, δ,::ValNormalization;kwargs...)
-        oatres = OATResult(f,actpars,δ,NoNormalization();kwargs...)
+    function OATResult(f, actpars, δ, ::ValNormalization; kwargs...)
+        oatres = OATResult(f,actpars,δ;kwargs...)
         normalize!(oatres,ValNormalization())
         return oatres
     end
 
     function OATResult(f, actpars, δ, ::StdNormalization; σp, σy, kwargs...)
-        oatres = OATResult(f,actpars,δ,NoNormalization(); kwargs...)
+        oatres = OATResult(f,actpars,δ; kwargs...)
         normalize!(oatres,σp,σy,StdNormalization())
         return oatres
     end
@@ -135,4 +138,6 @@ solve(::OATProblem, f, actpars::Vector{ActiveParameter{Float64}}, ::SingleRun;
     δ, normAlg::NormalizationAlg = NoNormalization(), kwargs...) =
         OATResult(f, actpars, δ, normAlg; kwargs...)
 
-# normalize!(::OATResult,::ValNormalization)
+# another possible interface :
+# solve(::OATProblem,f,actpars,::StdNormalization,::MultiRun;
+#       seednum,sampleAlg=SobolSample(),n=length(p)*length(p))
