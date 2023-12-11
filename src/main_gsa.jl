@@ -202,7 +202,9 @@ morrisInd = solve_fabm(MorrisProblem(),
 # An An ABM simulation function can be sensitive to seed number
 # Another way is to average the outputs over multiple number of times
 # This is done as before with an extra arguments MultipleTime() and fruns:
-morrisInd = solve_fabm(MorrisProblem(), actpars, FuncMultiRun(); fruns = 10, ....
+morrisInd = solve_fabm(MorrisProblem(), actpars, FuncMultiRun(); fruns = 10, runpar=true, ....
+# the argument runpar=true enable multi-level parallelization which improves runtime performance
+#   about 30%
 
 # For Morris method, multiple execution may be not significant but for other methods
 # s.a. OAT, this seems to be reasonable
@@ -273,4 +275,55 @@ plts = visualize(ofatres,actpars,ylabels) ;
 # display(plts[1,2])  , i.e. y[2] vs. p[1]
 # ...
 
+=#
+
+#########################################
+# Step VI.3 Executing and visualizing OAT
+#########################################
+
+#=
+
+actpars = .... ;
+oatres = solve_fabm(OATProblem(), actpars ; seednum=1, δ=0.01) ;
+
+# the above produces approximation of the derivatives stored in the field # oatres.ΔyΔp
+# these values need to be scaled to be able to conduct comparisons regarding the impact
+# of parameters on variables. The following are two ways to scale the derivatives:
+
+normalize!(oatres,ValNormalization()) # recommended
+# or recommended:
+#=
+noutputs = 4, seednum = 1;
+σp, σy = std(fabm, noutputs, actpars, seednum) # cf. types/active_pars.jl for implementation
+normalize!(oatres, σp, σy, ValNormalization())
+=#
+
+# another way:
+
+oatres_stdnor = solve_fabm(OATProblem(), actpars ;
+                    seednum=1, δ=0.01, normAlg=StdNormalization(),
+                    σp, σy) ;
+# the results are stored in the field oatres.ΔyΔpNor
+
+# Since the simulation results are non-determistic, a way to stablize the conclusions a bit
+# is to employ
+# i. the average results of multiple function executions (each with a different seed number)
+# ii. the average results of multiple method executions (each with a differnet seed number)
+# as follows:
+
+#=
+oatres_stdnor_m10 = solve_fabm(OATProblem(), actpars, MethodMultiRun() ;
+                        seednum=1, δ=0.01, normAlg=StdNormalization(),
+                        σp, σy,
+                        mruns = 10,
+                        runpar = true) ;  # multi-level parallelization
+
+# or
+
+oatres_stdnor_f10 = solve_fabm(OATProblem(), actpars, MethodMultiRun() ;
+                        seednum=1, δ=0.01, normAlg=StdNormalization(),
+                        σp, σy,
+                        fruns = 10,
+                        runpar = true) ;  # multi-level parallelization
+=#
 =#
