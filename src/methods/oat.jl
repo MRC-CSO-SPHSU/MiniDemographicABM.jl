@@ -100,14 +100,14 @@ OAT Result contains:
 mutable struct OATResult
     pnom::Vector{Float64}      # nominal parameter values
     ynom::Vector{Float64}      # trajectories of the output
-    yall::Matrix{Float64}      # trajectories of the outputs with deviated parameters
-    ∂y∂p::Matrix{Float64}     # trajectories of approximated partial derivatives
-    ∂y∂pNor::Matrix{Float64}  # normalized
+    yδall::Matrix{Float64}      # trajectories of the outputs with deviated parameters
+    ΔyΔp::Matrix{Float64}     # trajectories of approximated partial derivatives
+    ΔyΔpNor::Matrix{Float64}  # normalized
 
     function OATResult(f, actpars, δ, ::NoNormalization=NoNormalization(); kwargs...)
         pnom = nominal_values(actpars)
-        ΔyΔp, ynom, yall  = ΔfΔp(f,pnom,δ;kwargs...)
-        new(pnom,ynom,yall,ΔyΔp,zeros(1,1))
+        ΔyΔp, ynom, yδall  = ΔfΔp(f,pnom,δ;kwargs...)
+        new(pnom,ynom,yδall,ΔyΔp,zeros(1,1))
     end
 
     function OATResult(f, actpars, δ, ::ValNormalization; kwargs...)
@@ -125,12 +125,12 @@ mutable struct OATResult
 end # OATResult
 
 function normalize!(oatres::OATResult,::ValNormalization)
-    oatres.∂y∂pNor = _normalize(oatres.∂y∂p, oatres.pnom,  oatres.ynom, ValNormalization())
+    oatres.ΔyΔpNor = _normalize(oatres.ΔyΔp, oatres.pnom,  oatres.ynom, ValNormalization())
     return nothing
 end
 
 function normalize!(oatres::OATResult, σp, σy, ::StdNormalization)
-    oatres.∂y∂pNor = _normalize(oatres.∂y∂p, σp, σy, StdNormalization())
+    oatres.ΔyΔpNor = _normalize(oatres.ΔyΔp, σp, σy, StdNormalization())
     return nothing
 end
 
