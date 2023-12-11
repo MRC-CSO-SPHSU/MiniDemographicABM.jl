@@ -197,6 +197,8 @@ morrisInd = solve_fabm(MorrisProblem(),
            num_trajectory = 10,
            total_num_trajectory = 500)
 
+# Note that the value seednum = 0  make the simulation fully Random
+
 # An An ABM simulation function can be sensitive to seed number
 # Another way is to average the outputs over multiple number of times
 # This is done as before with an extra arguments MultipleTime() and fruns:
