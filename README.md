@@ -8,7 +8,8 @@ MiniDemographicABM.jl: A simplified agent based model of UK demography based on 
 
 ### Description
 
-This package implements a simplified non-calibrated agent-based demographic model of the UK. Individuals of an initial population are subject to ageing, deaths, births, divorces and marriages. The main purpose of the model is to explore and exploit capabilities of the state-of-the-art Agents.jl Julia package as well as other ecosystem of Julia packages like GlobalSensitivity.jl. Additionally, the model can serve as a base model to be adjusted to realistic large-scale socio-economics, pandemics or social interactions-based studies mainly within a demographic context. A specific case-study simulation is progressed with a user-defined simulation fixed step size on a hourly, daily, weekly, monthly basis or even an arbitrary user-defined clock rate.  
+This package implements a simplified non-calibrated agent-based demographic model of the UK. Individuals of an initial population are subject to ageing, deaths, births, divorces and marriages. The main purpose of the model is to explore and exploit capabilities of the state-of-the-art Agents.jl Julia package as well as other ecosystem of Julia packages like GlobalSensitivity.jl. Code includes examples for evaluating sensitivity analysis using OFAT, Morris and Sobol methods. 
+The model can serve as a base model to be adjusted to realistic large-scale socio-economics, pandemics or social interactions-based studies mainly within a demographic context. A specific case-study simulation is progressed with a user-defined simulation fixed step size on a hourly, daily, weekly, monthly basis or even an arbitrary user-defined clock rate.  
 
 ### Author(s) 
 [Atiyah Elsheikh](https://www.gla.ac.uk/schools/healthwellbeing/staff/atiyahelsheikh/)
@@ -24,7 +25,8 @@ Atiyah Elsheikh (V1.0-V2.1)
     - V1.2.1 (11.10.23): ABMSim V0.7.2 for removing the cause of Agents.jl performance drop when using ABMSim
 - **V1.3**(23.10.23): improved specification / documentation  
 - **V2.0**(6.11.23): Global Sensitivity Analysis with Morris Index, bugs resolved due to expansion of the parameter space
-- **V2.1**(24.11.23): GSA with Sobol indices, parallelizaztion multi-threadin, OFAT local sensitivity analysis algorithm 
+- **V2.1**(24.11.23): GSA with Sobol indices, parallelizaztion multi-threading, OFAT local sensitivity analysis algorithm 
+- **v2.2**(12.12.23): OAT Local SA, SA of non-determistic function by multiple exeuction of methods or functions each with different seed number, multi-level multi-threading (33% speedup)   
 
 ### License
 MIT License
@@ -41,12 +43,14 @@ This code was developed and experimented on
 
 ### URL 
 Check for updates here: 
-- **V1.0-V2.1** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
+- **V1.0-V2.2** at least till 12.12.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
 
 ### Exeution 
 Within Shell:
 
 `$ julia <script-name.jl>`
+
+`$ julia --threads 8 <script-name.jl>` # for multi-threading 
 
 Within REPL: 
 
@@ -73,7 +77,7 @@ The packages Agents.jl:
 
 [4] George Datseris, Ali R. Vahdati, Timothy C. DuBois: Agents.jl: a performant and feature-full agent-based modeling software of minimal code complexity. SIMULATION. 2022. doi:10.1177/00375497211068820
 
-The package GlobalSensitity.jl
+The package GlobalSenstivity.jl
 
 [5] Vaibhav Kumar Dixit and Christopher Rackauckas: GlobalSensitivity.jl: Performant and Parallel Global Sensitivity Analysis with Julia, Journal of Open Source Software, 2022
 
@@ -89,6 +93,10 @@ Sobol index algorithm via
 OFAT Algorithm 
 
 [8] G. ten Broeke, G. van Voorn & A. Ligtenberg. Which sensitivty analysis method should I use for my agent-based model?, Journal of Artificial Societes and Social Simulation 19(1) 5, 2016
+
+OAT Algorithm
+
+[9] J. Cariboni a b, D. Gatelli a, R. Liska a and A. Saltelli, The role of sensitivity analysis in ecological modelling, Ecological Modelling 2007
 
 ### Acknowledgements  
 - [Dr. Martin Hinsch](https://www.gla.ac.uk/schools/healthwellbeing/staff/martinhinsch/) for Scientific Exchange

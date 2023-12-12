@@ -14,6 +14,10 @@ notneeded(msg = "") = error("not needed" * msg)
 invalid_id() = 0
 has_invalid_id(agent) = agent.id == invalid_id()
 
+myseed!(seednum) = seednum == 0 ?
+    Random.seed!(floor(Int,time()) * Threads.threadid() + Threads.threadid()) :
+    Random.seed!(seednum)
+
 function plot_number_of_kids_per_distribution(model)
     population = allagents(model)
     marriedMen = [man for man in population if ismale(man) &&

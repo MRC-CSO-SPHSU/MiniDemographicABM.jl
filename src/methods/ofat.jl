@@ -20,19 +20,16 @@ function _compute_ofat_p(actpars,pnom,n)
 end
 
 
-function _compute_ofat_y(f, pmatrix, nruns, seednum)
-    println("Evaluating OFAT with $(nruns) runs ...")
-    println("Evaluation with seed # : $(seednum) ... ")
-    seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
+function _compute_ofat_y(f, pmatrix, fruns, seednum)
+    println("Evaluating OFAT with $(fruns) runs ...")
+    myseed!!(seednum)
     ysum = f(pmatrix)
-    for _ in 2:nruns
-        seednum += seednum == 0 ? 0 : 1
-        seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
-        println("Evaluation with seed # : $(seednum) ... ")
-        y = f(pmatrix)
-        ysum += y
+    for i in 2:fruns
+        println("Evaluating OFAT, run # $i ...")
+        myseed!(seednum*i) # every iteration executes a different seed
+        ysum += f(pmatrix)
     end
-    return ysum / nruns
+    return ysum / fruns
 end
 
 """
@@ -49,15 +46,11 @@ struct OFATResult
     y::Matrix{Float64}
     ynom::Vector{Float64}
 
-    function OFATResult(actpars,f,n,nruns,seednum)
+    function OFATResult(f,actpars,n,fruns,seednum)
         pnom = nominal_values(actpars)
         pmatrix = _compute_ofat_p(actpars,pnom,n)
-        for i in 1:length(actpars)
-            @assert actpars[i] === _ACTIVEPARS[i]
-        end
         ynom = f(pnom)
-        y = _compute_ofat_y(f, pmatrix,nruns,seednum)
-        #y = reshape(tmp,(length(ynom), length(actpars),n))
+        y = _compute_ofat_y(f, pmatrix,fruns,seednum)
         new(pmatrix,pnom,y,ynom)
     end
 
@@ -102,6 +95,10 @@ function visualize(res::OFATResult,
     return plts
 end
 
-solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}};
-    n=11, nruns, seednum, kwargs...) =
-    OFATResult(actpars,f,n,nruns,seednum)
+solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}},::SingleRun;
+    n = 11, seednum, kwargs...) =
+        OFATResult(f,actpars,n,1,seednum)
+
+solve(pr::OFATProblem, f, actpars::Vector{ActiveParameter{Float64}},::FuncMultiRun;
+    n=11, fruns, seednum, kwargs...) =
+        OFATResult(f,actpars,n,fruns,seednum)

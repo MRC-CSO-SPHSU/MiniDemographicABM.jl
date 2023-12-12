@@ -21,7 +21,8 @@ function _solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{T}};kwargs.
     return _solve(prob, f, lbs, ubs; kwargs...)
 end
 
-function solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{T}};
+function solve(prob::GSAProblem, f, actpars::Vector{ActiveParameter{T}},
+    ::SingleRun=SingleRun();
     kwargs...) where T    # method specific keyword arguments
     return _solve(prob,f,actpars;kwargs...)
 end
@@ -39,7 +40,7 @@ function _solve(pr::MorrisProblem, f, lbs, ubs;
     len_design_mat = 10,
     kwargs...)
 
-    @time morrisInd = gsa(f,
+    morrisInd = gsa(f,
         Morris(;relative_scale, num_trajectory, total_num_trajectory, len_design_mat),
         [ [lbs[i],ubs[i]] for i in 1:length(ubs) ];
         batch)
@@ -72,7 +73,10 @@ function _solve(pr::SobolProblem, f, lbs, ubs;
     conf_level = 0.95,
     kwargs...)
 
-    sobolInd = gsa(f, Sobol(;order, conf_level), [ [lbs[i],ubs[i]] for i in 1:length(ubs) ]; batch, samples)
+    sobolInd = gsa(f,
+                    Sobol(;order, conf_level),
+                    [ [lbs[i],ubs[i]] for i in 1:length(ubs) ];
+                    batch, samples)
     return sobolInd
 end
 
