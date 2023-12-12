@@ -15,7 +15,7 @@ The model can serve as a base model to be adjusted to realistic large-scale soci
 [Atiyah Elsheikh](https://www.gla.ac.uk/schools/healthwellbeing/staff/atiyahelsheikh/)
 
 ### Contributor(s)  
-Atiyah Elsheikh (V1.0-V2.1)  
+Atiyah Elsheikh (V1.0-V2.2)  
 
 ### Release Notes 
 - **V1.0** (22.2.2023) : First initial implementation exploring various capabilities of Agents.jl as a demonstration of how to implement an abstract demographic ABM, not yet calibrated. A space type was implemented as a demonstration. A comprehensive set of unit tests is included. Blue style coding convetions are followed. 
