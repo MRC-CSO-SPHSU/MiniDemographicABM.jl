@@ -1,4 +1,8 @@
 """
+An example of conducting global / local sensitivity analysis of an ABM-based simulation
+function.
+
+
 Run this script from shell as
 #  julia <script-name.jl>
 
@@ -14,7 +18,6 @@ using GlobalSensitivity
 using Random
 using ProgressMeter
 using Base.Threads
-using Random
 
 include("./simspec.jl")
 include("./methods.jl")
@@ -80,8 +83,8 @@ For defining simulation-based functions:
 model declaration, initializtaion and stepping definitions can be accessed in simspec.jl
 via the calls
    declare_initialized_UKModel(..)
-   agent_steps()
-   model_steps()
+   agent_steps!()
+   model_steps!()
 
    How to execute an ABM simulation based on Agents.jl, cf. main.jl
 =#
@@ -103,22 +106,27 @@ via the calls
 ##  using the following global constants below
 ##
 
-function fabm(pars)
-    @assert length(pars) == length(_ACTIVEPARS)
-    properties = DemographicABMProp{_CLOCK}(starttime = _STARTTIME,
-        initialPop = _INITIALPOP)
+function _create_sample_model(pars,actpars;clock,starttime,initialPop)
+    @assert length(pars) == length(actpars)
+    properties = DemographicABMProp{clock}(;starttime,initialPop)
     for (i,p) in enumerate(pars)
-        @assert _ACTIVEPARS[i].lowerbound <= p <= _ACTIVEPARS[i].upperbound
-        set_par_value!(properties,_ACTIVEPARS[i],p)
+        #@assert actpars[i].lowerbound <= p <= actpars[i].upperbound
+        set_par_value!(properties,actpars[i],p)
     end
-    model = declare_initialized_UKmodel(_CLOCK,properties)
+    model = declare_initialized_UKmodel(properties)
+    return model
+end
+
+function fabm(pars)
+    model = _create_sample_model(pars,_ACTIVEPARS;
+        clock=_CLOCK, starttime=_STARTTIME, initialPop = _INITIALPOP)
     run!(model,agent_steps!,model_steps!,_NUMSTEPS)
     if num_living(model) == 0
         @warn "no living people"
         return [ 1e-3, 100.0, 0.5, 1e-3]
     end
     return [ ratio_singles(model),
-             float(mean_living_age(model)) ,
+             mean_living_age(model) ,
              ratio_males(model),
              max(ratio_children(model),1e-3) ]
 end
@@ -127,6 +135,7 @@ function fabm(pmatrix::Matrix{Float64})
     @assert size(pmatrix)[1] == length(_ACTIVEPARS)
     res = Array{Float64,2}(undef,4,size(pmatrix)[2])
     pr = Progress(size(pmatrix)[2];desc= "Evaluating fabm(pmatrix)...")
+    # lock next!(pr) ?
     @threads for i in 1 : size(pmatrix)[2]
         @inbounds res[:,i] = fabm(@view pmatrix[:,i])
         next!(pr)
@@ -134,21 +143,32 @@ function fabm(pmatrix::Matrix{Float64})
     return res
 end
 
+"a sample ABM-based function with time-dependent output trajectories"
+function ftabm(pars)
+    model = _create_sample_model(pars,_ACTIVEPARS;
+        clock=_CLOCK, starttime=_STARTTIME, initialPop = _INITIALPOP)
+    mdata = [currstep, ratio_singles, mean_living_age, ratio_males, ratio_children ]
+    _,res =
+           run!(model,_agent_steps!,_model_steps!,numSimSteps; mdata)
+    t = model_df.currstep
+    y = [ res.ratio_singles res.mean_living_age res.ratio_males  max.(res.ratio_children,1e-3) ] ;
+    return t, y
+end
+
 
 ###################################################
 # Step V - fabm-Wrapper for analysis methods
 ###################################################
 
-function solve_fabm(prob::ComputationProblem, actpars::Vector{ActiveParameter{Float64}};
+function solve_fabm(prob::ComputationProblem, actpars::Vector{ActiveParameter{Float64}},
+    rmode::RunMode=SingleRun();
     seednum,
     kwargs...)     # method specific keyword arguments
     _reset_glbvars!(;kwargs...)
     _reset_ACTIVEPARS!(actpars)
-    seednum == 0 ? Random.seed!(floor(Int,time())) : Random.seed!(seednum)
-    return solve(prob,fabm,actpars;seednum,kwargs...)
+    myseed!(seednum)
+    return solve(prob,fabm,actpars,rmode;seednum,kwargs...)
 end
-
-
 
 #########################################################
 # Step VI - Documentation for execution and visualization
@@ -176,6 +196,18 @@ morrisInd = solve_fabm(MorrisProblem(),
            relative_scale = true,
            num_trajectory = 10,
            total_num_trajectory = 500)
+
+# Note that the value seednum = 0  make the simulation fully Random
+
+# An An ABM simulation function can be sensitive to seed number
+# Another way is to average the outputs over multiple number of times
+# This is done as before with an extra arguments MultipleTime() and fruns:
+morrisInd = solve_fabm(MorrisProblem(), actpars, FuncMultiRun(); fruns = 10, runpar=true, ....
+# the argument runpar=true enable multi-level parallelization which improves runtime performance
+#   about 30%
+
+# For Morris method, multiple execution may be not significant but for other methods
+# s.a. OAT, this seems to be reasonable
 
 # Visualize the result w.r.t. the variable mean_living_age
 scatter(log.(morrisInd.means_star[2,:]), morrisInd.variances[2,:],
@@ -234,7 +266,7 @@ ofatres = solve_fabm(OFATProblem(), actpars;
     initialpop = 3_000,
     seednum = 1,
     ...
-    nruns = 10);
+    fruns = 10);
 
 ylabels = [ "ratio(singles)" , "mean_livings_age", "ratio(males)", "ratio(children)" ] ;
 plts = visualize(ofatres,actpars,ylabels) ;
@@ -242,5 +274,65 @@ plts = visualize(ofatres,actpars,ylabels) ;
 # within REPL, display the plots as:
 # display(plts[1,2])  , i.e. y[2] vs. p[1]
 # ...
+
+=#
+
+#########################################
+# Step VI.3 Executing and visualizing OAT
+#########################################
+
+#=
+
+actpars = .... ;
+oatres = solve_fabm(OATProblem(), actpars ; seednum=1, δ=0.01) ;
+
+# the above produces approximation of the derivatives stored in the field # oatres.ΔyΔp
+# these values need to be scaled to be able to conduct comparisons regarding the impact
+# of parameters on variables. The following are two ways to scale the derivatives:
+
+normalize!(oatres,ValNormalization()) # recommended
+# or recommended:
+#=
+noutputs = 4, seednum = 1;
+σp, σy = std(fabm, noutputs, actpars, seednum) # cf. types/active_pars.jl for implementation
+normalize!(oatres, σp, σy, ValNormalization())
+=#
+
+# another way:
+
+oatres_stdnor = solve_fabm(OATProblem(), actpars ;
+                    seednum=1, δ=0.01, normAlg=StdNormalization(),
+                    σp, σy) ;
+# the results are stored in the field oatres.ΔyΔpNor
+
+# Since the simulation results are non-determistic, a way to stablize the conclusions a bit
+# is to employ
+# i. the average results of multiple function executions (each with a different seed number)
+# ii. the average results of multiple method executions (each with a differnet seed number)
+# as follows:
+
+#=
+oatres_stdnor_m10 = solve_fabm(OATProblem(), actpars, MethodMultiRun() ;
+                        seednum=1, δ=0.01, normAlg=StdNormalization(),
+                        σp, σy,
+                        mruns = 10,
+                        runpar = true) ;  # multi-level parallelization
+
+# or
+
+oatres_stdnor_f10 = solve_fabm(OATProblem(), actpars, MethodMultiRun() ;
+                        seednum=1, δ=0.01, normAlg=StdNormalization(),
+                        σp, σy,
+                        fruns = 10,
+                        runpar = true) ;  # multi-level parallelization
+=#
+
+# Visualization :
+#=
+
+plabels = [ "p"*string(i) for i in 1:length(actpars) ] ;
+ylabels = [ "ratio(singles)" , "mean_livings_age", "ratio(males)", "ratio(children)" ]
+plts = visualize(oatres_xyz,plabels, ylabels, true ) # last argument stands for nomalized result
+=#
 
 =#

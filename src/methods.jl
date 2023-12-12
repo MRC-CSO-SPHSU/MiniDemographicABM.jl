@@ -1,20 +1,14 @@
 
 """
-Common Computational problem types s.a. global / local sensitivity analysis
+Common Computational problem types s.a. global / local sensitivity analysis with
+    a subset of model parameters being specified as uncertain active parameters
 """
 
+using Base.Threads
+
+include("./util.jl")
 include("./types/active_pars.jl")
-
-abstract type ComputationProblem end
-abstract type SAProblem <: ComputationProblem end
-abstract type GSAProblem <: SAProblem end
-abstract type LSAProblem <: SAProblem end
-
-notimplemented(prob::ComputationProblem) = error("$(typeof(prob)) not implemented")
-
-solve(prob::ComputationProblem, f, actpars::Vector{ActiveParameter{T}};
-    kwargs...) where T = # method specific keyword arguments
-    notimplemented(prob)
-
-include("./methods/gsa.jl")
-include("./methods/ofat.jl")
+include("./types/computation_problem.jl")
+include("./methods/gsa.jl")     # GSA methods from GlobalSensitivity.jl
+include("./methods/ofat.jl")    # One Factor At Time LSA method
+include("./methods/oat.jl")     # One At Time derivative-based LSA Method

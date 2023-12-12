@@ -162,7 +162,7 @@ num_living_singles(model) =
     length([person for person in allagents(model) if isalive(person) && issingle(person)])
 
 mean_living_age(model) =
-    sum([age(person) for person in allagents(model) if isalive(person)]) / num_living(model)
+    sum([float(age(person)) for person in allagents(model) if isalive(person)]) / num_living(model)
 ratio_males(model) = num_living_males(model) / num_living(model)
 ratio_children(model) = num_living_children(model) / num_living(model)
 ratio_singles(model) =

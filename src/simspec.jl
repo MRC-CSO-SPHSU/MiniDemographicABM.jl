@@ -12,7 +12,7 @@ include("./spec/stepping.jl")
 #
 
 
-function declare_initialized_UKmodel(clock,properties)
+function declare_initialized_UKmodel(properties)
     model = UKDemographicABM(properties)
     declare_population!(model)
     init_kinship!(model) # the kinship among population
