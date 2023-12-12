@@ -107,7 +107,7 @@ mutable struct OATResult
     function OATResult(f, actpars, δ, ::NoNormalization=NoNormalization(); kwargs...)
         pnom = nominal_values(actpars)
         ΔyΔp, ynom, yδall  = ΔfΔp(f,pnom,δ;kwargs...)
-        new(pnom,ynom,yδall,ΔyΔp,zeros(1,1))
+        new(pnom,ynom,yδall,ΔyΔp,undefined_normalized_derivatives())
     end
 
     function OATResult(f, actpars, δ, ::ValNormalization; kwargs...)
@@ -124,6 +124,9 @@ mutable struct OATResult
 
 end # OATResult
 
+undefined_normalized_derivatives() = zeros(1,1)
+normalization_established(oatres) = oatres.ΔyΔpNor != undefined_normalized_derivatives()
+
 function normalize!(oatres::OATResult,::ValNormalization)
     oatres.ΔyΔpNor = _normalize(oatres.ΔyΔp, oatres.pnom,  oatres.ynom, ValNormalization())
     return nothing
@@ -134,10 +137,45 @@ function normalize!(oatres::OATResult, σp, σy, ::StdNormalization)
     return nothing
 end
 
+"visualize OAT Results"
+function visualize(res::OATResult,
+    plabels::Vector{String},
+    ylabels::Vector{String},
+    normalized::Bool)
+
+    if normalized && !normalization_established(res)
+        error("normalizatoion not established: execute > normalize(res,XNormalization()")
+    end
+
+    plts = Vector{Any}(undef,ny)
+
+    _title(normalized) = normalized ? "Normalized derivatives" : "Derivatives"
+    _derivatives(res,normalized) = normalized ? res.ΔyΔpNor : res.ΔyΔp
+
+    for i in 1:ny
+        plts[i] = plot()
+        bar!(plts[i],plabels, _derivatives(res,normalized)[i,:],
+            title = _title(normalized) * " $(ylabels[i])")
+    end
+
+    return plts
+end
+
+function visualize(res::OATResult,
+    actpars::Vector{ActiveParameter{T}},
+    ylabels::Vector{String},
+    normalized::Bool) where T
+
+    @assert length(actpars) == length(res.pnom)
+    plabels = [ string(ap.name)  for ap in actpars ] ;
+    return visualize(res,plabels,ylabels,normalized)
+end
+
+
 solve(::OATProblem, f, actpars::Vector{ActiveParameter{Float64}}, ::SingleRun;
     δ, normAlg::NormalizationAlg = NoNormalization(), kwargs...) =
         OATResult(f, actpars, δ, normAlg; kwargs...)
 
 # another possible interface :
-# solve(::OATProblem,f,actpars,::StdNormalization,::MultiRun;
+#solve(::OATProblem,f,actpars,::StdNormalization,::XMultiRun;
 #       seednum,sampleAlg=SobolSample(),n=length(p)*length(p))

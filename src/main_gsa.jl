@@ -326,4 +326,13 @@ oatres_stdnor_f10 = solve_fabm(OATProblem(), actpars, MethodMultiRun() ;
                         fruns = 10,
                         runpar = true) ;  # multi-level parallelization
 =#
+
+# Visualization :
+#=
+
+plabels = [ "p"*string(i) for i in 1:length(actpars) ] ;
+ylabels = [ "ratio(singles)" , "mean_livings_age", "ratio(males)", "ratio(children)" ]
+plts = visualize(oatres_xyz,plabels, ylabels, true ) # last argument stands for nomalized result
+=#
+
 =#
