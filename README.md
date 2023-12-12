@@ -25,7 +25,8 @@ Atiyah Elsheikh (V1.0-V2.1)
     - V1.2.1 (11.10.23): ABMSim V0.7.2 for removing the cause of Agents.jl performance drop when using ABMSim
 - **V1.3**(23.10.23): improved specification / documentation  
 - **V2.0**(6.11.23): Global Sensitivity Analysis with Morris Index, bugs resolved due to expansion of the parameter space
-- **V2.1**(24.11.23): GSA with Sobol indices, parallelizaztion multi-threadin, OFAT local sensitivity analysis algorithm 
+- **V2.1**(24.11.23): GSA with Sobol indices, parallelizaztion multi-threading, OFAT local sensitivity analysis algorithm 
+- **v2.2**(12.12.23): OAT Local SA, SA of non-determistic function by multiple exeuction of methods or functions each with different seed number, multi-level multi-threading (33% speedup)   
 
 ### License
 MIT License
@@ -42,12 +43,14 @@ This code was developed and experimented on
 
 ### URL 
 Check for updates here: 
-- **V1.0-V2.1** at least till 10.07.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
+- **V1.0-V2.2** at least till 12.12.2023: [MiniDemographicABM.jl](https://github.com/MRC-CSO-SPHSU/MiniDemographicABM.jl)
 
 ### Exeution 
 Within Shell:
 
 `$ julia <script-name.jl>`
+
+`$ julia --threads 8 <script-name.jl>` # for multi-threading 
 
 Within REPL: 
 
